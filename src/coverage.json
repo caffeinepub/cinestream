@@ -1,0 +1,70 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-04T12:55:56.329Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Investigate and fix the regression where clicking “Watch Trailer” results in the trailer not loading (no playable video shown). Ensure the TrailerModal becomes visible and the YouTube iframe reliably renders on top of all page content.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TrailerModal.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TrailerModal.tsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Harden the trailer fetch/query flow so transient TMDB failures (timeouts, rate limiting, network errors, invalid key) do not present as a permanent “no trailer” state. Ensure failures surface as an explicit error state in TrailerModal with a working retry action, and that subsequent modal opens re-attempt the fetch.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TrailerModal.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TrailerModal.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Add development-only diagnostics to pinpoint trailer failures and modal visibility issues without logging sensitive data. Log: modal open/close events, trailer fetch outcome category (success/no-trailer/errorType), and iframe mount/unmount events.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/lib/devDiagnostics.ts",
+          "frontend/src/components/TrailerModal.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TrailerModal.tsx",
+          "frontend/src/App.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "caffeine.lock.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/components/TrailerModal.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

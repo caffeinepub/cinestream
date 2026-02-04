@@ -1,0 +1,297 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 25,
+  "summary": "CineStream is a React (Vite) + Motoko (Internet Computer) web app for discovering trending movies/TV shows from TMDB, featuring a Netflix-inspired/glassmorphic UI, trailer playback, and auto-refreshing trending content (target: every 30 minutes). Logged-in users (Internet Identity) can track TV shows with per-user profiles and a new-episode indicator based on last visit. The frontend uses TanStack React Query for caching/refresh and resilient TMDB fetching, while the backend canister provides access-controlled storage for user profiles, tracked show IDs, and last-visit timestamps (plus optional admin role management). The repo also includes generic IC HTTP outcall helpers and a Caffeine.ai blob-storage mixin/utility for canister storage operations.",
+  "existing_features": [
+    {
+      "id": "IF-1",
+      "title": "Trending movies and TV discovery from TMDB (past-year filter)",
+      "synonyms": [
+        "Trending content grid",
+        "Discover trending this year"
+      ],
+      "description": "Fetches popular movies and TV shows from TMDB discover endpoints filtered to the last year, merges and sorts results (by vote average), and renders a grid of media cards with loading skeletons and robust error states.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "Featured content row (curated, horizontally scrollable)",
+      "synonyms": [
+        "Featured carousel",
+        "Featured row"
+      ],
+      "description": "Fetches a combined set of high-popularity, higher-rated movies and TV shows from TMDB, sorts by popularity, takes the top set, and displays them in a horizontally scrollable row with left/right navigation controls and loading/error handling.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "Trailer lookup and playback modal (YouTube embed)",
+      "synonyms": [
+        "Watch trailer",
+        "Trailer modal"
+      ],
+      "description": "For a selected media item, fetches TMDB videos, selects an official YouTube trailer when available, and plays it in an iframe modal with loading states and graceful fallbacks when missing or failing.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "TMDB TV search and add-to-tracked workflow",
+      "synonyms": [
+        "Add show dialog",
+        "Search TV shows"
+      ],
+      "description": "Provides a dialog to search TMDB TV shows by name, shows top results with poster and metadata, and allows authenticated users to add selected shows to their tracked list in the backend (with user-facing toast feedback).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "Tracked shows list with details and new-episode indicator",
+      "synonyms": [
+        "My tracked shows",
+        "Tracked list"
+      ],
+      "description": "Loads tracked show IDs from the backend, fetches TMDB TV details for each (title, poster, last air date), and displays a tracked shows section. Shows are removable and may display a 'new episode' indicator based on last visit time.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "Last-visit tracking and new-episode detection",
+      "synonyms": [
+        "Visit timestamp",
+        "New since last visit"
+      ],
+      "description": "On tracked shows view mount, updates a per-user last-visit timestamp in the backend. When rendering tracked shows, compares TMDB last_air_date against last visit to mark shows with newly aired episodes.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-7",
+      "title": "Internet Identity authentication (login/logout, persistence, status)",
+      "synonyms": [
+        "II auth",
+        "DFINITY AuthClient integration"
+      ],
+      "description": "Implements an InternetIdentityProvider that initializes AuthClient, restores existing sessions, exposes login/logout methods, and provides granular login status flags for UI use.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-8",
+      "title": "Identity-bound backend actor creation with query invalidation",
+      "synonyms": [
+        "useActor",
+        "Authenticated actor"
+      ],
+      "description": "Creates an anonymous or authenticated canister actor depending on identity presence, calls initializeAccessControl when available, and invalidates/refetches dependent React Query queries whenever the actor changes.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-9",
+      "title": "User profile storage and mandatory first-time setup dialog",
+      "synonyms": [
+        "Profile setup",
+        "Save caller profile"
+      ],
+      "description": "Fetches the caller profile from the canister; if authenticated and profile is missing, forces a modal dialog that collects a display name and saves it to the backend before continuing.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-10",
+      "title": "TMDB API health check with banner and key status reporting",
+      "synonyms": [
+        "API health banner",
+        "TMDB connectivity check"
+      ],
+      "description": "Periodically verifies TMDB API connectivity via the configuration endpoint, caches status, and displays a banner when unhealthy. Also reports whether a custom TMDB key is configured vs fallback key usage.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-11",
+      "title": "Resilient TMDB fetch layer (timeouts, rate limiting, graceful fallback)",
+      "synonyms": [
+        "TMDB request handler",
+        "handleTMDBRequest"
+      ],
+      "description": "Centralizes TMDB fetch behavior with request timeouts, response code handling for 401/429, network error handling, and React Query retry/backoff settings for key content queries.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-12",
+      "title": "Role-based access control in backend canister",
+      "synonyms": [
+        "AccessControl",
+        "admin/user/guest roles"
+      ],
+      "description": "Motoko AccessControl module tracks per-principal roles, assigns the first initialized principal as admin, supports role assignment (admin-only), and enforces permissions for profile/tracked-show/last-visit APIs.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-13",
+      "title": "Backend APIs for tracked shows (CRUD with duplicate prevention)",
+      "synonyms": [
+        "getTrackedShows/addTrackedShow/removeTrackedShow"
+      ],
+      "description": "Stores tracked TV show IDs per user principal, allows adding/removing IDs with permission checks, and prevents duplicate additions.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-14",
+      "title": "Backend APIs for last-visit timestamps",
+      "synonyms": [
+        "getLastVisit/updateLastVisit"
+      ],
+      "description": "Stores and returns a per-user last-visit timestamp (Time.now) with access control checks; used by frontend to detect new episodes.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-15",
+      "title": "Backend trending content storage endpoints (public getters, admin updates)",
+      "synonyms": [
+        "getTrendingMovies/getTrendingTVShows"
+      ],
+      "description": "Defines canister methods to retrieve stored trending movies/TV shows publicly and to update them as an admin (though current update implementations clear storage rather than storing input).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-16",
+      "title": "Internet Computer HTTP outcalls helper (GET/POST)",
+      "synonyms": [
+        "http_request wrapper",
+        "outcall.mo"
+      ],
+      "description": "Provides Motoko helper functions for HTTP GET/POST via IC management canister with cycle budgeting, headers, idempotency keys for POST, and a transform function that strips headers from responses.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-17",
+      "title": "Caffeine blob-storage integration mixin (gateway auth, deletion confirmation, cashier refill)",
+      "synonyms": [
+        "Storage.mo",
+        "Mixin.mo"
+      ],
+      "description": "Implements a storage state module and mixin with authorization against a gateway principal list, dead-blob listing and deletion confirmation (including forced GC), and a cashier refill mechanism to top up cycles.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-18",
+      "title": "Homepage supporting UI sections (Hero, FilterBar, Netflix Top 10)",
+      "synonyms": [
+        "Hero section",
+        "Filter bar",
+        "Top 10 strip"
+      ],
+      "description": "Implements previously-stubbed UI components used on the homepage (FilterBar, Hero, NetflixTop10) to provide filtering/navigation and curated/top-ranked presentation sections alongside the core grids/rows.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-19",
+      "title": "Build/deployment template + automation for IC app (React + Motoko)",
+      "synonyms": [
+        "build-template",
+        "deploy.sh",
+        "icp.yaml",
+        "Dockerfile build pipeline"
+      ],
+      "description": "Adds/updates a reusable build-template and scripts for building and deploying the project (including prune/resize image scripts, canister YAMLs, workspace/package configuration, and supporting tooling/config).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-investigate-and-fix-the-regression-where-clicking-watch-trailer-results-in-the-trailer-not-loading-no-playable-video-shown-ensure-the-trailermodal-becomes-visible-and-the-youtube-iframe-reliably-renders-on-top-of-all-page-content",
+      "title": "Investigate and fix the regression where clicking “Watch Trailer” results in the trailer not loading (no playable video shown). Ensure the TrailerModal becomes visible and the YouTube iframe reliably renders on top of all page content.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-the-trailer-fetch-query-flow-so-transient-tmdb-failures-timeouts-rate-limiting-network-errors-invalid-key-do-not-present-as-a-permanent-no-trailer-state-ensure-failures-surface-as-an-explicit-error-state-in-trailermodal-with-a-working-retry-action-and-that-subsequent-modal-opens-re-attempt-the-fetch",
+      "title": "Harden the trailer fetch/query flow so transient TMDB failures (timeouts, rate limiting, network errors, invalid key) do not present as a permanent “no trailer” state. Ensure failures surface as an explicit error state in TrailerModal with a working retry action, and that subsequent modal opens re-attempt the fetch.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-development-only-diagnostics-to-pinpoint-trailer-failures-and-modal-visibility-issues-without-logging-sensitive-data-log-modal-open-close-events-trailer-fetch-outcome-category-success-no-trailer-errortype-and-iframe-mount-unmount-events",
+      "title": "Add development-only diagnostics to pinpoint trailer failures and modal visibility issues without logging sensitive data. Log: modal open/close events, trailer fetch outcome category (success/no-trailer/errorType), and iframe mount/unmount events.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Perform a comprehensive bugfix pass: review code and fix UI/layout issues across the site (e.g., slider controls) and broken trailer playback.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Proceed with a best-effort full-site code review and stabilization pass (frontend + backend): prioritize deployment/build stability first, then fix remaining UI/layout issues (e.g., slider controls) and trailer playback regressions, allowing minimal refactors as needed.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Fix performance lag during scrolling and fix trailer playback where audio plays but no visible modal/video renders.",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "architectural_notes": [
+    "Frontend: React + Vite + TypeScript with TailwindCSS styling and shadcn/ui-style components (Dialog, Button, Input, etc.).",
+    "Frontend data layer: TanStack React Query hooks (useQuery/useMutation) encapsulate all remote interactions (TMDB fetches + IC canister calls), with caching, retries, stale times, and invalidation patterns.",
+    "Authentication: Internet Identity integration via a React context provider using @dfinity/auth-client; identity persists across reloads and exposes login/logout state.",
+    "IC canister integration: a custom useActor hook constructs an agent-backed actor using the current identity; it attempts to call initializeAccessControl on actor creation and invalidates/refetches non-actor queries when identity changes.",
+    "Backend: Motoko actor stores per-principal state in Map structures (profiles, tracked shows, last-visit times) and enforces authorization via an AccessControl module (admin/user/guest roles).",
+    "Access control model: first initialized principal becomes admin; subsequent initialized principals become user; anonymous is guest. Admin can assign roles.",
+    "TMDB integration is performed directly from the frontend via fetch, with an optional VITE_TMDB_API_KEY and a hardcoded fallback key; includes request timeouts (AbortSignal.timeout), rate-limit handling, and a periodic API health check.",
+    "Additional backend utilities: a generic HTTP outcalls module (GET/POST) with response transformation and explicit cycle budgeting; a blob-storage mixin/utility for gateway authorization, blob deletion coordination, and cashier cycle refills (Caffeine.ai related).",
+    "Trending content should auto-refresh on an interval (target: every 30 minutes) via the frontend data layer (React Query refetchInterval / scheduled invalidation) without requiring a full page reload.",
+    "Stabilization/bugfix plan (user-approved to proceed): best-effort full-site audit (frontend + backend) with priorities: (1) deployment/build stability (remove traps, empty imports, duplicate providers, unsafe init paths), (2) core regressions (trailer modal/playback), (3) UI/layout cleanup (slider controls, spacing, responsiveness). Bugfix-focused with minimal refactors allowed for correctness/stability (no feature redesign)."
+  ],
+  "known_issues": [
+    "backend/main.mo: updateTrendingMovies and updateTrendingTVShows ignore the provided input arrays and simply reset the maps to empty; trendingMovies/trendingTVShows are never populated.",
+    "Frontend TMDB key handling includes a hardcoded fallback API key in source (useQueries.ts). This is insecure for production and can lead to shared quota/rate limiting.",
+    "useInternetIdentity.ts references DEFAULT_IDENTITY_PROVIDER via process.env.II_URL; in a Vite browser environment this may be undefined unless specially injected, potentially breaking login if not configured.",
+    "useTrackedShowsDetails parses tracked show IDs with parseInt without explicit NaN handling; malformed IDs from backend storage would cause errors (caught per-item, but silently drops the show).",
+    "AbortSignal.timeout is used for fetch timeouts; older browsers/environments that lack this API may fail unless polyfilled.",
+    "Featured/slider navigation buttons are misaligned/visually incorrect (reported as 'buttons still screwed up').",
+    "Trailer playback modal/autoplay sometimes fails to open when a trailer is clicked (reported as 'trailer it wont show').",
+    "Intermittent build/production deployment failures have occurred repeatedly and may still be unresolved.",
+    "Repeated production deployment failures persisted across multiple versions; root cause may include build-time config/env var handling, empty/stub component imports, duplicate providers, or canister init traps and needs systematic stabilization.",
+    "Page performance: noticeable lag/sluggishness during use (user-reported)."
+  ],
+  "isFixRequest": true,
+  "generatedImages": [
+    {
+      "filename": "frontend/public/assets/generated/film-reel-transparent.dim_64x64.png",
+      "description": "Generated film-reel icon asset (64x64, transparent) added under public assets.",
+      "targetWidth": 64,
+      "targetHeight": 64
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "CineStream",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

@@ -1,0 +1,71 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-investigate-and-fix-the-regression-where-clicking-watch-trailer-results-in-the-trailer-not-loading-no-playable-video-shown-ensure-the-trailermodal-becomes-visible-and-the-youtube-iframe-reliably-renders-on-top-of-all-page-content",
+      "featureTitle": "Investigate and fix the regression where clicking “Watch Trailer” results in the trailer not loading (no playable video shown). Ensure the TrailerModal becomes visible and the YouTube iframe reliably renders on top of all page content.",
+      "files": [
+        "frontend/src/components/TrailerModal.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "http-outcalls@3.0.0",
+        "blob-storage@3.0.0",
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-harden-the-trailer-fetch-query-flow-so-transient-tmdb-failures-timeouts-rate-limiting-network-errors-invalid-key-do-not-present-as-a-permanent-no-trailer-state-ensure-failures-surface-as-an-explicit-error-state-in-trailermodal-with-a-working-retry-action-and-that-subsequent-modal-opens-re-attempt-the-fetch",
+      "featureTitle": "Harden the trailer fetch/query flow so transient TMDB failures (timeouts, rate limiting, network errors, invalid key) do not present as a permanent “no trailer” state. Ensure failures surface as an explicit error state in TrailerModal with a working retry action, and that subsequent modal opens re-attempt the fetch.",
+      "files": [
+        "frontend/src/components/TrailerModal.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "http-outcalls@3.0.0",
+        "blob-storage@3.0.0",
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-development-only-diagnostics-to-pinpoint-trailer-failures-and-modal-visibility-issues-without-logging-sensitive-data-log-modal-open-close-events-trailer-fetch-outcome-category-success-no-trailer-errortype-and-iframe-mount-unmount-events",
+      "featureTitle": "Add development-only diagnostics to pinpoint trailer failures and modal visibility issues without logging sensitive data. Log: modal open/close events, trailer fetch outcome category (success/no-trailer/errorType), and iframe mount/unmount events.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/TrailerModal.tsx"
+      ],
+      "components": [
+        "http-outcalls@3.0.0",
+        "blob-storage@3.0.0",
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

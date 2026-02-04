@@ -1,0 +1,75 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Repair TrailerModal rendering, fetching reliability, and dev diagnostics",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Fix TrailerModal visibility/stacking and ensure the YouTube iframe reliably renders and stops playback on close.",
+      "acceptanceCriteria": [
+        "From both FeaturedRow and ContentGrid, clicking a media item’s trailer action opens a visible modal overlay above the page content.",
+        "When a trailer exists, the YouTube player becomes visible and playable within the modal (not audio-only, not hidden behind other layers).",
+        "Closing the modal stops playback and no audio continues in the background.",
+        "Re-opening the trailer for the same item after closing works reliably (no “stuck” blank state)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/TrailerModal.tsx",
+          "operation": "modify",
+          "description": "Harden modal/iframe lifecycle: only render the iframe while the modal is open; force a clean iframe remount on close and on re-open; ensure the modal content stays above other stacking contexts by avoiding internal layering pitfalls and by aligning rendering conditions with Dialog open state."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add a targeted global stacking fix for Radix portals (e.g., the Dialog portal container) so the TrailerModal overlay/content reliably appears above sticky headers and other high-z elements without editing shadcn UI source files."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Make trailer fetching resilient: transient TMDB failures must show explicit error + retry, and modal re-opens must re-attempt fetch (no cached permanent 'no trailer' from failures).",
+      "acceptanceCriteria": [
+        "If TMDB trailer lookup fails, TrailerModal shows an error message (in English) and a retry button.",
+        "Retry triggers a new trailer fetch attempt and updates the modal state accordingly (success/no-trailer/error).",
+        "A temporary TMDB failure does not get cached as “no trailer” for future opens of the same media item."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the trailer React Query configuration so each modal open re-attempts the trailer lookup (even if a prior result is still fresh), while keeping true 'no-trailer' distinct from transient error states; ensure failures do not end up represented/cached as 'no-trailer' for subsequent opens."
+        },
+        {
+          "path": "frontend/src/components/TrailerModal.tsx",
+          "operation": "modify",
+          "description": "Ensure the retry action triggers a fresh trailer fetch attempt and that re-opening the modal for the same media item also triggers a new fetch attempt (rather than showing a stale cached state)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Add development-only diagnostics for modal lifecycle, trailer fetch outcomes, and iframe mount/unmount without leaking sensitive data or spamming production logs.",
+      "acceptanceCriteria": [
+        "In development mode, console diagnostics clearly indicate: when the modal opens/closes, whether the trailer query ran, the resulting status (success/no-trailer/error type), and whether the iframe mounted.",
+        "In production builds, these diagnostics do not spam logs and do not expose API keys or user identity details."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/devDiagnostics.ts",
+          "operation": "modify",
+          "description": "Align diagnostic helpers with the required categories (modal open/close/retry; trailer outcome success/no-trailer/errorType; iframe mount/unmount) and keep all logging gated to development-only execution without including sensitive values."
+        },
+        {
+          "path": "frontend/src/components/TrailerModal.tsx",
+          "operation": "modify",
+          "description": "Ensure diagnostics are emitted exactly for: modal open/close, retry clicks, trailer result status transitions, and iframe mount/unmount; avoid logging any sensitive fields (e.g., API keys) and keep logs dev-only."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Gate any non-essential console logging so production builds are not noisy; keep trailer-related diagnostics routed through the existing development-only diagnostics utility."
+        }
+      ]
+    }
+  ]
+}

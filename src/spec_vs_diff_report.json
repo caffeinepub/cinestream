@@ -1,0 +1,33 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-04T12:55:56.292Z",
+  "summary": "Diff adds more robust trailer modal state handling (separate selectedMedia/isDialogOpen, delayed media clear), keyed iframe remounts to stop playback and avoid blank reopens, explicit error vs no-trailer states with retry, and development-only diagnostics hooks. Global CSS includes stated Radix Dialog z-index fixes but also broad visual restyling.",
+  "missing_requirements": [],
+  "hallucinated_features": [
+    {
+      "description": "Broad UI/visual redesign changes (animated gradient background, neon/glass styling, custom scrollbar, extensive color token changes) beyond what is necessary to make the trailer modal visible/functional.",
+      "reason": "BuildRequest non-goal explicitly discourages redesigning the app UI beyond what is needed for the trailer modal reliability; the diff includes extensive global styling changes not directly tied to trailer loading reliability.",
+      "evidence": [
+        "frontend/src/index.css",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Global React Query default option changes (refetchOnWindowFocus false, retry 2) applied at runtime in App.",
+      "reason": "Not requested by any REQ; could affect broader app data-fetch behavior beyond trailer flow.",
+      "evidence": [
+        "frontend/src/App.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.66,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/TrailerModal.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "project_state.json"
+  ]
+}
