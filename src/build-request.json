@@ -1,72 +1,36 @@
 {
   "kind": "build_request",
-  "title": "Fix broken trailer loading and ensure Trailer Modal reliably renders",
-  "priority": "high",
+  "title": "Remove UI scroll/navigation buttons from Featured row",
+  "projectName": "CineStream",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Investigate and fix the regression where clicking “Watch Trailer” results in the trailer not loading (no playable video shown). Ensure the TrailerModal becomes visible and the YouTube iframe reliably renders on top of all page content.",
+      "id": "REQ-17",
+      "text": "Remove the left/right UI scroll navigation buttons from the FeaturedRow so no overlay scroll controls are rendered, while keeping the FeaturedRow horizontally scrollable via native input (trackpad/mouse wheel/touch swipe).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "recent-messages-4"
         ],
         "quotes": [
-          "There are still issues. Fix them. Trailer isn't loading."
+          "remove the ui scroll buttons"
         ]
       },
       "acceptanceCriteria": [
-        "From both FeaturedRow and ContentGrid, clicking a media item’s trailer action opens a visible modal overlay above the page content.",
-        "When a trailer exists, the YouTube player becomes visible and playable within the modal (not audio-only, not hidden behind other layers).",
-        "Closing the modal stops playback and no audio continues in the background.",
-        "Re-opening the trailer for the same item after closing works reliably (no “stuck” blank state)."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Harden the trailer fetch/query flow so transient TMDB failures (timeouts, rate limiting, network errors, invalid key) do not present as a permanent “no trailer” state. Ensure failures surface as an explicit error state in TrailerModal with a working retry action, and that subsequent modal opens re-attempt the fetch.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Trailer isn't loading."
-        ]
-      },
-      "acceptanceCriteria": [
-        "If TMDB trailer lookup fails, TrailerModal shows an error message (in English) and a retry button.",
-        "Retry triggers a new trailer fetch attempt and updates the modal state accordingly (success/no-trailer/error).",
-        "A temporary TMDB failure does not get cached as “no trailer” for future opens of the same media item."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Add development-only diagnostics to pinpoint trailer failures and modal visibility issues without logging sensitive data. Log: modal open/close events, trailer fetch outcome category (success/no-trailer/errorType), and iframe mount/unmount events.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Trailer isn't loading."
-        ]
-      },
-      "acceptanceCriteria": [
-        "In development mode, console diagnostics clearly indicate: when the modal opens/closes, whether the trailer query ran, the resulting status (success/no-trailer/error type), and whether the iframe mounted.",
-        "In production builds, these diagnostics do not spam logs and do not expose API keys or user identity details."
+        "In `frontend/src/components/FeaturedRow.tsx`, the left and right navigation `<Button>` elements (ChevronLeft/ChevronRight) are no longer rendered.",
+        "The FeaturedRow content remains horizontally scrollable using native scrolling (e.g., touch swipe/trackpad) with `overflow-x-auto` preserved.",
+        "No unused imports or dead code remain in `FeaturedRow.tsx` (e.g., remove `Button`, `ChevronLeft`, `ChevronRight`, and the `scroll` callback if no longer used).",
+        "After removal, the FeaturedRow layout has no empty reserved space that previously accommodated the buttons (adjust any horizontal padding such as `px-12 sm:px-16` as needed so cards align naturally within the container)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (Shadcn UI sources are read-only and must be composed).",
-    "Respect the existing React + TypeScript + Tailwind + React Query architecture; do not introduce new frameworks.",
-    "Keep all backend logic in the single Motoko actor (no backend changes are required unless proven necessary for this trailer issue)."
+    "Do not modify any files under `frontend/src/components/ui` (Shadcn components are read-only).",
+    "Keep changes scoped to removing UI scroll/navigation buttons; do not alter unrelated trailer playback behavior or backend APIs."
   ],
   "nonGoals": [
-    "Redesigning the app UI beyond what is necessary to make the trailer modal visible and functional.",
-    "Adding new media features (recommendations, playlists, social sharing, etc.).",
-    "Adding third-party authentication providers beyond Internet Identity."
+    "Adding replacement navigation UI (e.g., pagination dots, new buttons, keyboard shortcuts) unless required to preserve native scrolling.",
+    "Changing the FeaturedRow data fetching behavior or curated content logic."
   ],
   "imageRequirements": {
     "required": [],

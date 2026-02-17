@@ -15,6 +15,8 @@ interface TrailerModalProps {
 
 function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
   const [iframeKey, setIframeKey] = useState(0);
+
+  // Always fetch trailer when modal is open and media is available
   const { data: trailerResult, isLoading, refetch, isFetching } = useTrailer(
     media?.id || null,
     media?.media_type || null,
@@ -47,30 +49,24 @@ function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
     }
   }, [trailerResult, media]);
 
-  // Force iframe remount when modal closes to stop playback
-  useEffect(() => {
-    if (!isOpen) {
-      setIframeKey((prev) => prev + 1);
-      devLog.iframeLifecycle('unmounted', { reason: 'modal-closed' });
-    }
-  }, [isOpen]);
-
-  // Force iframe remount when modal opens to ensure clean state
-  useEffect(() => {
-    if (isOpen) {
-      setIframeKey((prev) => prev + 1);
-    }
-  }, [isOpen]);
-
-  // Log iframe mount in development
+  // Bump iframe key when trailer changes to force remount
   useEffect(() => {
     if (isOpen && trailerResult?.status === 'success') {
+      setIframeKey((prev) => prev + 1);
       devLog.iframeLifecycle('mounted', {
         mediaId: media?.id,
         mediaType: media?.media_type,
       });
     }
   }, [isOpen, trailerResult, media]);
+
+  // Reset iframe key when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIframeKey(0);
+      devLog.iframeLifecycle('unmounted', { reason: 'modal-closed' });
+    }
+  }, [isOpen]);
 
   const handleRetry = useCallback(() => {
     devLog.trailerModal('retry-requested', {
@@ -111,7 +107,7 @@ function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden glass-panel-strong border-white/30 glass-shadow-xl rounded-2xl">
+      <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden glass-panel-strong border-white/30 glass-shadow-xl rounded-2xl dialog-content-stack">
         <DialogHeader className="p-8 pb-6 glass-panel-strong relative">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 space-y-3">
@@ -153,15 +149,15 @@ function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
             </div>
           )}
 
-          {!showLoading && trailerKey && isOpen && (
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-black/50 glass-shadow-lg">
+          {!showLoading && trailerKey && (
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-black glass-shadow-lg">
               <iframe
                 key={`trailer-${media.id}-${trailerKey}-${iframeKey}`}
-                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1`}
+                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`}
                 title={`${title} Trailer`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full border-0"
               />
             </div>
           )}
@@ -173,7 +169,7 @@ function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
                 alt={title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 glass-panel-strong flex items-center justify-center backdrop-blur-md">
+              <div className="absolute inset-0 trailer-overlay-light flex items-center justify-center">
                 <Alert className="max-w-md glass-panel-strong border-white/30 rounded-xl glass-shadow">
                   <AlertCircle className="h-4 w-4 text-white/80" />
                   <AlertDescription className="text-white/90 text-glass">
@@ -191,7 +187,7 @@ function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
                 alt={title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 glass-panel-strong flex items-center justify-center backdrop-blur-md">
+              <div className="absolute inset-0 trailer-overlay-light flex items-center justify-center">
                 <Alert className="max-w-md glass-panel-strong border-white/30 rounded-xl glass-shadow">
                   <AlertCircle className="h-4 w-4 text-red-400" />
                   <AlertDescription className="space-y-3">

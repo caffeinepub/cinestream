@@ -1,9 +1,8 @@
-import { useRef, useCallback, memo } from 'react';
+import { useRef, memo } from 'react';
 import { useFeaturedContent } from '../hooks/useQueries';
 import MediaCard from './MediaCard';
 import { Skeleton } from './ui/skeleton';
-import { Button } from './ui/button';
-import { ChevronLeft, ChevronRight, AlertCircle, Wifi } from 'lucide-react';
+import { AlertCircle, Wifi } from 'lucide-react';
 import type { MediaItem } from '../App';
 
 interface FeaturedRowProps {
@@ -13,15 +12,6 @@ interface FeaturedRowProps {
 function FeaturedRow({ onMediaClick }: FeaturedRowProps) {
   const { data: content, isLoading, error, isError } = useFeaturedContent();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scroll = useCallback((direction: 'left' | 'right') => {
-    if (!scrollContainerRef.current) return;
-    const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
-    scrollContainerRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    });
-  }, []);
 
   if (isLoading) {
     return (
@@ -103,44 +93,15 @@ function FeaturedRow({ onMediaClick }: FeaturedRowProps) {
             <h2 className="text-5xl font-bold text-white netflix-accent-bar tracking-tight text-glass-strong">Featured</h2>
           </div>
           
-          <div className="relative group">
-            {/* Left Navigation Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 h-28 w-12 rounded-xl glass-panel-strong hover:glass-panel opacity-0 group-hover:opacity-100 transition-all duration-300 glass-shadow-lg hover:scale-105 neon-glow border border-white/20 hover:border-white/40 md:block hidden will-change-transform"
-              onClick={() => scroll('left')}
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="h-7 w-7 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" />
-            </Button>
-            
-            {/* Right Navigation Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-28 w-12 rounded-xl glass-panel-strong hover:glass-panel opacity-0 group-hover:opacity-100 transition-all duration-300 glass-shadow-lg hover:scale-105 neon-glow border border-white/20 hover:border-white/40 md:block hidden will-change-transform"
-              onClick={() => scroll('right')}
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="h-7 w-7 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" />
-            </Button>
-
+          <div className="relative">
             {/* Scrollable Content */}
             <div
               ref={scrollContainerRef}
               className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 scroll-smooth"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {content.map((item) => (
-                <div
-                  key={`${item.media_type}-${item.id}`}
-                  className="flex-shrink-0 w-64"
-                >
-                  <MediaCard
-                    media={item}
-                    onClick={() => onMediaClick(item)}
-                  />
+                <div key={`${item.media_type}-${item.id}`} className="flex-shrink-0 w-64">
+                  <MediaCard media={item} onClick={() => onMediaClick(item)} />
                 </div>
               ))}
             </div>

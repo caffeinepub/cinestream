@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import Header from './components/Header';
@@ -32,6 +32,7 @@ export interface MediaItem {
 function AppContent() {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { identity, isInitializing } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
   const { data: apiHealth } = useTMDBHealth();
@@ -50,13 +51,21 @@ function AppContent() {
     });
   }, [queryClient]);
 
-  // Handle media selection with stable state management
+  // Handle media selection with immediate modal open
   const handleMediaClick = useCallback((media: MediaItem) => {
+    // Cancel any pending close timeout to prevent race conditions
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+
     devLog.mediaSelection('Media clicked', {
       mediaId: media.id,
       mediaType: media.media_type,
       isOpen: true,
     });
+
+    // Set media and open dialog atomically
     setSelectedMedia(media);
     setIsDialogOpen(true);
   }, []);
@@ -67,10 +76,30 @@ function AppContent() {
       mediaType: selectedMedia?.media_type,
       isOpen: false,
     });
+
+    // Close dialog immediately
     setIsDialogOpen(false);
-    // Small delay before clearing media to allow dialog close animation
-    setTimeout(() => setSelectedMedia(null), 150);
+
+    // Clear any existing timeout
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+
+    // Delay clearing media to allow dialog close animation
+    closeTimeoutRef.current = setTimeout(() => {
+      setSelectedMedia(null);
+      closeTimeoutRef.current = null;
+    }, 200);
   }, [selectedMedia]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">

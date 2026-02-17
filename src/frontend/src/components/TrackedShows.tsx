@@ -1,5 +1,5 @@
 import { X, Calendar, Sparkles, AlertCircle } from 'lucide-react';
-import { useTrackedShowsDetails, useRemoveTrackedShow, getImageUrl, useUpdateLastVisit } from '../hooks/useQueries';
+import { useGetTrackedShowsDetails, useRemoveTrackedShow, getImageUrl, useUpdateLastVisit } from '../hooks/useQueries';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
 import { toast } from 'sonner';
@@ -7,7 +7,7 @@ import AddShowDialog from './AddShowDialog';
 import { useEffect } from 'react';
 
 export default function TrackedShows() {
-  const { data: trackedShows = [], isLoading, error, isError } = useTrackedShowsDetails();
+  const { data: trackedShows = [], isLoading, error, isError } = useGetTrackedShowsDetails();
   const removeShowMutation = useRemoveTrackedShow();
   const updateLastVisitMutation = useUpdateLastVisit();
 
@@ -143,4 +143,3 @@ export default function TrackedShows() {
     </div>
   );
 }
-

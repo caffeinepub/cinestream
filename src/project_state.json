@@ -1,7 +1,40 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 25,
+  "projectStateVersion": 41,
   "summary": "CineStream is a React (Vite) + Motoko (Internet Computer) web app for discovering trending movies/TV shows from TMDB, featuring a Netflix-inspired/glassmorphic UI, trailer playback, and auto-refreshing trending content (target: every 30 minutes). Logged-in users (Internet Identity) can track TV shows with per-user profiles and a new-episode indicator based on last visit. The frontend uses TanStack React Query for caching/refresh and resilient TMDB fetching, while the backend canister provides access-controlled storage for user profiles, tracked show IDs, and last-visit timestamps (plus optional admin role management). The repo also includes generic IC HTTP outcall helpers and a Caffeine.ai blob-storage mixin/utility for canister storage operations.",
+  "architectural_notes": [
+    "Frontend: React + Vite + TypeScript with TailwindCSS styling and shadcn/ui-style components (Dialog, Button, Input, etc.).",
+    "Frontend data layer: TanStack React Query hooks (useQuery/useMutation) encapsulate all remote interactions (TMDB fetches + IC canister calls), with caching, retries, stale times, and invalidation patterns.",
+    "Authentication: Internet Identity integration via a React context provider using @dfinity/auth-client; identity persists across reloads and exposes login/logout state.",
+    "IC canister integration: a custom useActor hook constructs an agent-backed actor using the current identity; it attempts to call initializeAccessControl on actor creation and invalidates/refetches non-actor queries when identity changes.",
+    "Backend: Motoko actor stores per-principal state in Map structures (profiles, tracked shows, last-visit times) and enforces authorization via an AccessControl module (admin/user/guest roles).",
+    "Access control model: first initialized principal becomes admin; subsequent initialized principals become user; anonymous is guest. Admin can assign roles.",
+    "TMDB integration is performed directly from the frontend via fetch, with an optional VITE_TMDB_API_KEY and a hardcoded fallback key; includes request timeouts (AbortSignal.timeout), rate-limit handling, and a periodic API health check.",
+    "Additional backend utilities: a generic HTTP outcalls module (GET/POST) with response transformation and explicit cycle budgeting; a blob-storage mixin/utility for gateway authorization, blob deletion coordination, and cashier cycle refills (Caffeine.ai related).",
+    "Trending content should auto-refresh on an interval (target: every 30 minutes) via the frontend data layer (React Query refetchInterval / scheduled invalidation) without requiring a full page reload.",
+    "Stabilization/bugfix plan (user-approved to proceed): best-effort full-site audit (frontend + backend) with priorities: (1) deployment/build stability (remove traps, empty imports, duplicate providers, unsafe init paths), (2) core regressions (trailer modal/playback), (3) UI/layout cleanup (slider controls, spacing, responsiveness). Bugfix-focused with minimal refactors allowed for correctness/stability (no feature redesign)."
+  ],
+  "known_issues": [
+    "backend/main.mo: updateTrendingMovies and updateTrendingTVShows ignore the provided input arrays and simply reset the maps to empty; trendingMovies/trendingTVShows are never populated.",
+    "Frontend TMDB key handling includes a hardcoded fallback API key in source (useQueries.ts). This is insecure for production and can lead to shared quota/rate limiting.",
+    "useInternetIdentity.ts references DEFAULT_IDENTITY_PROVIDER via process.env.II_URL; in a Vite browser environment this may be undefined unless specially injected, potentially breaking login if not configured.",
+    "useTrackedShowsDetails parses tracked show IDs with parseInt without explicit NaN handling; malformed IDs from backend storage would cause errors (caught per-item, but silently drops the show).",
+    "AbortSignal.timeout is used for fetch timeouts; older browsers/environments that lack this API may fail unless polyfilled.",
+    "Featured/slider navigation buttons are misaligned/visually incorrect (reported as 'buttons still screwed up').",
+    "Trailer playback modal/autoplay sometimes fails to open when a trailer is clicked (reported as 'trailer it wont show').",
+    "Intermittent build/production deployment failures have occurred repeatedly and may still be unresolved.",
+    "Repeated production deployment failures persisted across multiple versions; root cause may include build-time config/env var handling, empty/stub component imports, duplicate providers, or canister init traps and needs systematic stabilization.",
+    "Page performance: noticeable lag/sluggishness during use (user-reported)."
+  ],
+  "isFixRequest": true,
+  "generatedImages": [
+    {
+      "filename": "frontend/public/assets/generated/film-reel-transparent.dim_64x64.png",
+      "description": "Generated film-reel icon asset (64x64, transparent) added under public assets.",
+      "targetWidth": 64,
+      "targetHeight": 64
+    }
+  ],
   "existing_features": [
     {
       "id": "IF-1",
@@ -213,26 +246,130 @@
       "version": 1
     },
     {
-      "id": "feature-investigate-and-fix-the-regression-where-clicking-watch-trailer-results-in-the-trailer-not-loading-no-playable-video-shown-ensure-the-trailermodal-becomes-visible-and-the-youtube-iframe-reliably-renders-on-top-of-all-page-content",
-      "title": "Investigate and fix the regression where clicking “Watch Trailer” results in the trailer not loading (no playable video shown). Ensure the TrailerModal becomes visible and the YouTube iframe reliably renders on top of all page content.",
+      "id": "feature-investigate-and-fix-the-regression-where-clicking-watch-trailer-results-in-trailers-not-showing-up-ensure-the-trailermodal-reliably-becomes-visible-and-the-youtube-iframe-consistently-renders-video-not-just-audio-on-top-of-all-page-content-in-production",
+      "title": "Investigate and fix the regression where clicking “Watch Trailer” results in trailers not showing up. Ensure the TrailerModal reliably becomes visible and the YouTube iframe consistently renders video (not just audio) on top of all page content in production.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-harden-the-trailer-fetch-query-flow-so-transient-tmdb-failures-timeouts-rate-limiting-network-errors-invalid-key-do-not-present-as-a-permanent-no-trailer-state-ensure-failures-surface-as-an-explicit-error-state-in-trailermodal-with-a-working-retry-action-and-that-subsequent-modal-opens-re-attempt-the-fetch",
-      "title": "Harden the trailer fetch/query flow so transient TMDB failures (timeouts, rate limiting, network errors, invalid key) do not present as a permanent “no trailer” state. Ensure failures surface as an explicit error state in TrailerModal with a working retry action, and that subsequent modal opens re-attempt the fetch.",
+      "id": "feature-harden-trailer-fetching-ux-so-transient-tmdb-failures-rate-limiting-timeouts-network-errors-invalid-api-key-never-look-like-a-silent-no-trailer-or-a-blank-modal-always-show-an-explicit-error-state-in-trailermodal-with-a-working-try-again-action-and-ensure-subsequent-modal-opens-re-attempt-the-fetch",
+      "title": "Harden trailer fetching UX so transient TMDB failures (rate limiting, timeouts, network errors, invalid API key) never look like a silent ‘no trailer’ or a blank modal. Always show an explicit error state in TrailerModal with a working “Try Again” action, and ensure subsequent modal opens re-attempt the fetch.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-development-only-diagnostics-to-pinpoint-trailer-failures-and-modal-visibility-issues-without-logging-sensitive-data-log-modal-open-close-events-trailer-fetch-outcome-category-success-no-trailer-errortype-and-iframe-mount-unmount-events",
-      "title": "Add development-only diagnostics to pinpoint trailer failures and modal visibility issues without logging sensitive data. Log: modal open/close events, trailer fetch outcome category (success/no-trailer/errorType), and iframe mount/unmount events.",
+      "id": "feature-update-the-trailermodal-so-the-radix-shadcn-dialog-content-is-guaranteed-to-render-above-all-page-content-in-production-preventing-the-audio-plays-but-no-modal-video-is-visible-regression",
+      "title": "Update the TrailerModal so the Radix/Shadcn dialog content is guaranteed to render above all page content in production, preventing the \"audio plays but no modal/video is visible\" regression.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-trailermodal-visibility-regression-by-configuring-the-radix-shadcn-dialog-used-in-frontend-src-components-trailermodal-tsx-so-the-modal-content-reliably-renders-above-all-page-content-in-production-preventing-the-audio-plays-but-no-video-modal-is-visible-behavior",
+      "title": "Fix the TrailerModal visibility regression by configuring the Radix/Shadcn Dialog used in `frontend/src/components/TrailerModal.tsx` so the modal content reliably renders above all page content in production (preventing the \"audio plays but no video/modal is visible\" behavior).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-reduce-ui-lag-caused-by-heavy-blur-glass-effects-in-the-trailermodal-by-replacing-expensive-backdrop-blur-usage-in-the-modal-s-overlayed-states-loading-no-trailer-error-with-a-lighter-weight-visual-treatment-while-keeping-the-overall-look-consistent",
+      "title": "Reduce UI lag caused by heavy blur/glass effects in the TrailerModal by replacing expensive backdrop blur usage in the modal’s overlayed states (loading/no-trailer/error) with a lighter-weight visual treatment while keeping the overall look consistent.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-trailer-fetching-behavior-re-attempts-cleanly-after-failures-and-across-repeated-modal-opens-by-keeping-trailermodal-state-transitions-consistent-e-g-avoiding-stale-iframe-state-and-ensuring-try-again-always-triggers-a-new-fetch-and-can-successfully-render-the-iframe-when-a-trailer-becomes-available",
+      "title": "Ensure trailer fetching behavior re-attempts cleanly after failures and across repeated modal opens by keeping TrailerModal state transitions consistent (e.g., avoiding stale iframe state and ensuring “Try Again” always triggers a new fetch and can successfully render the iframe when a trailer becomes available).",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-broken-trailer-playback-flow-so-that-clicking-a-mediacard-watch-trailer-reliably-opens-a-visible-trailermodal-and-consistently-renders-the-youtube-video-not-audio-only-above-all-page-content-in-production",
+      "title": "Fix the broken trailer playback flow so that clicking a MediaCard (\"Watch Trailer\") reliably opens a visible TrailerModal and consistently renders the YouTube video (not audio-only) above all page content in production.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-resolve-ui-layout-issues-affecting-the-featured-slider-navigation-controls-so-the-left-right-buttons-are-consistently-positioned-clickable-and-not-visually-misaligned-across-responsive-breakpoints",
+      "title": "Resolve UI/layout issues affecting the featured slider navigation controls so the left/right buttons are consistently positioned, clickable, and not visually misaligned across responsive breakpoints.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-trailer-failure-transparency-so-users-never-see-a-blank-modal-or-silent-failure-always-show-an-explicit-loading-no-trailer-or-error-state-with-a-working-try-again-action-that-triggers-a-fresh-fetch-and-can-successfully-render-the-iframe-when-a-trailer-becomes-available",
+      "title": "Improve trailer failure transparency so users never see a blank modal or silent failure: always show an explicit loading, no-trailer, or error state with a working “Try Again” action that triggers a fresh fetch and can successfully render the iframe when a trailer becomes available.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-reduce-perceived-ui-breakage-caused-by-performance-scroll-lag-by-removing-or-downgrading-the-heaviest-glass-blur-effects-in-trailer-related-overlay-states-loading-no-trailer-error-while-preserving-the-overall-visual-style",
+      "title": "Reduce perceived UI breakage caused by performance/scroll lag by removing or downgrading the heaviest glass/blur effects in trailer-related overlay states (loading/no-trailer/error) while preserving the overall visual style.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-run-a-best-effort-stabilization-pass-to-prevent-build-deploy-regressions-related-to-the-broken-ui-and-trailer-playback-path-focus-on-production-behavior-parity-with-development",
+      "title": "Run a best-effort stabilization pass to prevent build/deploy regressions related to the broken UI and trailer playback path (focus on production behavior parity with development).",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-layout-positioning-of-the-featuredrow-right-navigation-button-the-second-button-inside-the-featuredrow-slider-controls-so-it-is-visually-aligned-and-consistently-clickable-across-responsive-breakpoints-without-overlapping-or-being-clipped-by-surrounding-content-apply-changes-only-to-the-selected-element-at-xpath-html-1-body-1-div-1-div-1-main-1-section-1-div-2-div-1-div-2-button-2-the-right-navigation-button-in-frontend-src-components-featuredrow-tsx",
+      "title": "Fix the layout/positioning of the FeaturedRow right navigation button (the second <button> inside the FeaturedRow slider controls) so it is visually aligned and consistently clickable across responsive breakpoints, without overlapping or being clipped by surrounding content. Apply changes only to the selected element at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/section[1]/div[2]/div[1]/div[2]/button[2]` (the right navigation Button in `frontend/src/components/FeaturedRow.tsx`).",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-trailer-playback-interaction-so-that-clicking-any-movie-show-card-reliably-opens-the-trailermodal-and-the-user-always-sees-an-on-screen-state-loading-error-no-trailer-or-the-youtube-player-instead-of-nothing-happening",
+      "title": "Fix the trailer playback interaction so that clicking any movie/show card reliably opens the TrailerModal and the user always sees an on-screen state (loading, error, no-trailer, or the YouTube player), instead of nothing happening.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-trailermodal-open-close-and-iframe-lifecycle-state-transitions-so-the-modal-never-renders-as-effectively-invisible-due-to-stale-state-e-g-shouldrenderiframe-iframekey-when-switching-media-quickly-or-reopening-after-close",
+      "title": "Harden TrailerModal open/close and iframe lifecycle state transitions so the modal never renders as effectively invisible due to stale state (e.g., shouldRenderIframe/iframeKey) when switching media quickly or reopening after close.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-trailermodal-dialog-content-reliably-renders-above-all-page-content-in-production-so-it-cannot-be-visually-hidden-by-other-positioned-elements-z-index-stacking-context-issues",
+      "title": "Ensure the TrailerModal dialog content reliably renders above all page content in production so it cannot be visually hidden by other positioned elements (z-index/stacking context issues).",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-left-right-ui-scroll-navigation-buttons-from-the-featuredrow-so-no-overlay-scroll-controls-are-rendered-while-keeping-the-featuredrow-horizontally-scrollable-via-native-input-trackpad-mouse-wheel-touch-swipe",
+      "title": "Remove the left/right UI scroll navigation buttons from the FeaturedRow so no overlay scroll controls are rendered, while keeping the FeaturedRow horizontally scrollable via native input (trackpad/mouse wheel/touch swipe).",
+      "reqIds": [
+        "REQ-17"
       ],
       "version": 1
     }
@@ -255,39 +392,20 @@
       "summary": "Fix performance lag during scrolling and fix trailer playback where audio plays but no visible modal/video renders.",
       "reqIds": [],
       "status": "pending"
-    }
-  ],
-  "architectural_notes": [
-    "Frontend: React + Vite + TypeScript with TailwindCSS styling and shadcn/ui-style components (Dialog, Button, Input, etc.).",
-    "Frontend data layer: TanStack React Query hooks (useQuery/useMutation) encapsulate all remote interactions (TMDB fetches + IC canister calls), with caching, retries, stale times, and invalidation patterns.",
-    "Authentication: Internet Identity integration via a React context provider using @dfinity/auth-client; identity persists across reloads and exposes login/logout state.",
-    "IC canister integration: a custom useActor hook constructs an agent-backed actor using the current identity; it attempts to call initializeAccessControl on actor creation and invalidates/refetches non-actor queries when identity changes.",
-    "Backend: Motoko actor stores per-principal state in Map structures (profiles, tracked shows, last-visit times) and enforces authorization via an AccessControl module (admin/user/guest roles).",
-    "Access control model: first initialized principal becomes admin; subsequent initialized principals become user; anonymous is guest. Admin can assign roles.",
-    "TMDB integration is performed directly from the frontend via fetch, with an optional VITE_TMDB_API_KEY and a hardcoded fallback key; includes request timeouts (AbortSignal.timeout), rate-limit handling, and a periodic API health check.",
-    "Additional backend utilities: a generic HTTP outcalls module (GET/POST) with response transformation and explicit cycle budgeting; a blob-storage mixin/utility for gateway authorization, blob deletion coordination, and cashier cycle refills (Caffeine.ai related).",
-    "Trending content should auto-refresh on an interval (target: every 30 minutes) via the frontend data layer (React Query refetchInterval / scheduled invalidation) without requiring a full page reload.",
-    "Stabilization/bugfix plan (user-approved to proceed): best-effort full-site audit (frontend + backend) with priorities: (1) deployment/build stability (remove traps, empty imports, duplicate providers, unsafe init paths), (2) core regressions (trailer modal/playback), (3) UI/layout cleanup (slider controls, spacing, responsiveness). Bugfix-focused with minimal refactors allowed for correctness/stability (no feature redesign)."
-  ],
-  "known_issues": [
-    "backend/main.mo: updateTrendingMovies and updateTrendingTVShows ignore the provided input arrays and simply reset the maps to empty; trendingMovies/trendingTVShows are never populated.",
-    "Frontend TMDB key handling includes a hardcoded fallback API key in source (useQueries.ts). This is insecure for production and can lead to shared quota/rate limiting.",
-    "useInternetIdentity.ts references DEFAULT_IDENTITY_PROVIDER via process.env.II_URL; in a Vite browser environment this may be undefined unless specially injected, potentially breaking login if not configured.",
-    "useTrackedShowsDetails parses tracked show IDs with parseInt without explicit NaN handling; malformed IDs from backend storage would cause errors (caught per-item, but silently drops the show).",
-    "AbortSignal.timeout is used for fetch timeouts; older browsers/environments that lack this API may fail unless polyfilled.",
-    "Featured/slider navigation buttons are misaligned/visually incorrect (reported as 'buttons still screwed up').",
-    "Trailer playback modal/autoplay sometimes fails to open when a trailer is clicked (reported as 'trailer it wont show').",
-    "Intermittent build/production deployment failures have occurred repeatedly and may still be unresolved.",
-    "Repeated production deployment failures persisted across multiple versions; root cause may include build-time config/env var handling, empty/stub component imports, duplicate providers, or canister init traps and needs systematic stabilization.",
-    "Page performance: noticeable lag/sluggishness during use (user-reported)."
-  ],
-  "isFixRequest": true,
-  "generatedImages": [
+    },
     {
-      "filename": "frontend/public/assets/generated/film-reel-transparent.dim_64x64.png",
-      "description": "Generated film-reel icon asset (64x64, transparent) added under public assets.",
-      "targetWidth": 64,
-      "targetHeight": 64
+      "id": "AR-8",
+      "summary": "Stabilize trending content storage updates in the Motoko backend so that admin updates to trendingMovies and trendingTVShows persist the provided input arrays and subsequent getters return populated results (not empty).",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Remove the UI scroll/navigation buttons (e.g., slider left/right controls) from the interface.",
+      "reqIds": [],
+      "status": "pending"
     }
   ],
   "gameProjectType": "none",

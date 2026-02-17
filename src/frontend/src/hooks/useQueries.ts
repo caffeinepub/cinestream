@@ -383,6 +383,29 @@ export function useFeaturedContent() {
   });
 }
 
+// Hook to fetch trailer - always fresh on modal open
+export function useTrailer(
+  mediaId: number | null,
+  mediaType: 'movie' | 'tv' | null,
+  isModalOpen: boolean
+) {
+  return useQuery<TrailerResult>({
+    queryKey: ['trailer', mediaId, mediaType],
+    queryFn: async () => {
+      if (!mediaId || !mediaType) {
+        throw new Error('Media ID and type are required');
+      }
+      
+      return fetchTrailer(mediaId, mediaType);
+    },
+    enabled: !!mediaId && !!mediaType && isModalOpen,
+    staleTime: 0, // Always consider data stale
+    gcTime: 0, // Don't cache results
+    refetchOnMount: 'always', // Always refetch when component mounts
+    retry: false, // Don't retry on error - let user manually retry
+  });
+}
+
 // Hook to get caller's user profile
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -511,59 +534,44 @@ export function useUpdateLastVisit() {
   });
 }
 
-// Hook to fetch tracked shows with details and new episode detection
-export function useTrackedShowsDetails() {
-  const { data: trackedShowIds } = useGetTrackedShows();
+// Hook to get tracked shows with details (including new episode indicators)
+export function useGetTrackedShowsDetails() {
+  const { data: trackedShowIds, isLoading: isLoadingIds } = useGetTrackedShows();
   const { data: lastVisit } = useGetLastVisit();
 
   return useQuery<TrackedShowDetails[]>({
     queryKey: ['tracked-shows-details', trackedShowIds, lastVisit?.toString()],
-    queryFn: async (): Promise<TrackedShowDetails[]> => {
+    queryFn: async () => {
       if (!trackedShowIds || trackedShowIds.length === 0) return [];
-      
-      const detailsPromises = trackedShowIds.map(async (showIdStr): Promise<TrackedShowDetails | null> => {
+
+      const showDetailsPromises = trackedShowIds.map(async (showId) => {
         try {
-          const showId = parseInt(showIdStr, 10);
-          
-          // Validate parsed ID
-          if (Number.isNaN(showId)) {
-            console.warn(`[TrackedShows] Invalid show ID: "${showIdStr}" - skipping`);
-            return null;
-          }
-          
-          const details = await fetchTVShowDetails(showId);
+          const details = await fetchTVShowDetails(Number(showId));
           
           // Check if there's a new episode since last visit
-          let hasNewEpisode = false;
-          if (lastVisit && details.lastAirDate) {
-            const lastAirDateMs = new Date(details.lastAirDate).getTime();
-            const lastVisitMs = Number(lastVisit) / 1_000_000; // Convert nanoseconds to milliseconds
-            hasNewEpisode = lastAirDateMs > lastVisitMs;
-          }
-          
+          const hasNewEpisode = lastVisit && details.lastAirDate
+            ? new Date(details.lastAirDate).getTime() > Number(lastVisit) / 1_000_000
+            : false;
+
           return {
-            id: showId,
+            id: Number(showId),
             title: details.title,
             lastAirDate: details.lastAirDate,
             posterPath: details.posterPath,
             hasNewEpisode,
           };
         } catch (error) {
-          console.error(`Failed to fetch details for show ${showIdStr}:`, error);
+          console.error(`Failed to fetch details for show ${showId}:`, error);
           return null;
         }
       });
-      
-      const results = await Promise.all(detailsPromises);
-      return results.filter((r): r is TrackedShowDetails => r !== null);
+
+      const results = await Promise.all(showDetailsPromises);
+      return results.filter((show): show is TrackedShowDetails => show !== null);
     },
     enabled: !!trackedShowIds && trackedShowIds.length > 0,
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    refetchInterval: 1000 * 60 * 30, // Automatically refetch every 30 minutes
-    refetchOnMount: true,
-    refetchIntervalInBackground: false, // Don't refetch when tab is not visible
-    retry: 2, // Retry failed requests twice
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
   });
 }
 
@@ -574,41 +582,12 @@ export function useSearchTVShows(query: string) {
     queryFn: () => searchTVShows(query),
     enabled: query.trim().length > 0,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 2, // Retry failed requests twice
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
+    retry: 1,
   });
 }
 
-// Hook to fetch trailer with refetch on modal open and proper error handling
-export function useTrailer(mediaId: number | null, mediaType: 'movie' | 'tv' | null, isOpen: boolean) {
-  return useQuery<TrailerResult>({
-    queryKey: ['trailer', mediaId, mediaType],
-    queryFn: async () => {
-      if (!mediaId || !mediaType) {
-        return { status: 'no-trailer' as const };
-      }
-      return fetchTrailer(mediaId, mediaType);
-    },
-    enabled: !!mediaId && !!mediaType && isOpen,
-    staleTime: 0, // Always refetch on modal open
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
-    retry: false, // Don't retry automatically - let user trigger retry
-    refetchOnMount: true, // Always refetch when modal opens
-  });
-}
-
-// Helper function to get image URL
-export function getImageUrl(path: string | null, size: 'w500' | 'w780' | 'original' = 'w500'): string {
+// Helper function to get TMDB image URL
+export function getImageUrl(path: string | null, size: 'w200' | 'w300' | 'w500' | 'w780' | 'original' = 'w500'): string {
   if (!path) return '/assets/generated/film-reel-transparent.dim_64x64.png';
   return `${TMDB_IMAGE_BASE}/${size}${path}`;
-}
-
-// Export API key status for UI feedback
-export function isUsingCustomApiKey(): boolean {
-  return hasCustomApiKey;
-}
-
-// Export API health status
-export function getApiHealthStatus(): 'unknown' | 'healthy' | 'unhealthy' {
-  return apiHealthStatus;
 }

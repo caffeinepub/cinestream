@@ -1,33 +1,61 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-04T12:55:56.292Z",
-  "summary": "Diff adds more robust trailer modal state handling (separate selectedMedia/isDialogOpen, delayed media clear), keyed iframe remounts to stop playback and avoid blank reopens, explicit error vs no-trailer states with retry, and development-only diagnostics hooks. Global CSS includes stated Radix Dialog z-index fixes but also broad visual restyling.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-17T23:41:47.408Z",
+  "summary": "REQ-17 is partially evidenced: FeaturedRow.tsx no longer imports Button/Chevrons and shows overflow-x-auto scroll containers, but the diff is truncated so full removal of the rendered left/right buttons and any now-dead scroll logic/layout spacing cannot be fully verified. Additionally, the change set includes unrelated documentation/state updates and additional error/loading UI complexity beyond the requested scope.",
+  "missing_requirements": [
     {
-      "description": "Broad UI/visual redesign changes (animated gradient background, neon/glass styling, custom scrollbar, extensive color token changes) beyond what is necessary to make the trailer modal visible/functional.",
-      "reason": "BuildRequest non-goal explicitly discourages redesigning the app UI beyond what is needed for the trailer modal reliability; the diff includes extensive global styling changes not directly tied to trailer loading reliability.",
+      "id": "REQ-17",
+      "requirement": "In frontend/src/components/FeaturedRow.tsx, the left and right navigation <Button> elements (ChevronLeft/ChevronRight) are no longer rendered.",
+      "reason": "The file content is truncated before the main scrollable content render; while imports for Button/Chevrons are absent, the diff does not show the JSX where the buttons previously rendered, so complete removal cannot be confirmed from the provided excerpt.",
       "evidence": [
-        "frontend/src/index.css",
-        "frontend-file-summaries.txt"
+        "frontend/src/components/FeaturedRow.tsx (truncated)"
       ]
     },
     {
-      "description": "Global React Query default option changes (refetchOnWindowFocus false, retry 2) applied at runtime in App.",
-      "reason": "Not requested by any REQ; could affect broader app data-fetch behavior beyond trailer flow.",
+      "id": "REQ-17",
+      "requirement": "No unused imports or dead code remain in FeaturedRow.tsx (e.g., remove the scroll callback if no longer used).",
+      "reason": "FeaturedRow.tsx still declares scrollContainerRef, but the excerpt is truncated before the scrollable content section, so it’s not possible to verify whether the ref (or any scroll handler) is still used or has become dead code.",
       "evidence": [
-        "frontend/src/App.tsx"
+        "frontend/src/components/FeaturedRow.tsx (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "requirement": "After removal, FeaturedRow layout has no empty reserved space that previously accommodated the buttons (adjust padding such as px-12 sm:px-16 as needed so cards align naturally).",
+      "reason": "The excerpt shows updated container padding, but the scrollable row markup is truncated, so it can’t be verified that no extra reserved space/offset remains where buttons used to sit.",
+      "evidence": [
+        "frontend/src/components/FeaturedRow.tsx (truncated)"
       ]
     }
   ],
-  "confidence": 0.66,
+  "hallucinated_features": [
+    {
+      "description": "Added/expanded FeaturedRow loading and error UIs with new icons (AlertCircle, Wifi) and detailed error display, which is outside the scope of only removing scroll/navigation buttons.",
+      "reason": "BuildRequest constrains changes to removing the overlay navigation buttons and avoiding unrelated behavior/UI changes.",
+      "evidence": [
+        "frontend/src/components/FeaturedRow.tsx (truncated)"
+      ]
+    },
+    {
+      "description": "Updated frontend-file-summaries.txt with numerous unrelated component changes (App state management, queries/trailer fetching behavior, header/hero/footer redesign, modal/iframe/z-index rules, etc.), which were not requested and suggest scope creep.",
+      "reason": "BuildRequest requires changes be scoped to removing FeaturedRow navigation buttons and not altering trailer playback behavior or other unrelated functionality.",
+      "evidence": [
+        "frontend-file-summaries.txt (truncated)"
+      ]
+    },
+    {
+      "description": "Updated project_state.json summary/existing feature descriptions unrelated to removing FeaturedRow navigation buttons.",
+      "reason": "BuildRequest does not request project metadata/state updates; constraints emphasize scoping changes tightly to FeaturedRow button removal.",
+      "evidence": [
+        "project_state.json (truncated)"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/TrailerModal.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
+    "frontend/src/components/FeaturedRow.tsx",
     "project_state.json"
   ]
 }
