@@ -4,6 +4,13 @@ import MediaCard from './MediaCard';
 import { Skeleton } from './ui/skeleton';
 import { AlertCircle, Wifi } from 'lucide-react';
 import type { MediaItem } from '../App';
+import { getMediaKey } from '../lib/mediaKeys';
+import { 
+  SECTION_CONTAINER_CLASS, 
+  SECTION_HEADER_CLASS, 
+  TRENDING_GRID_CLASS,
+  GLASS_PANEL_CLASS 
+} from '../lib/sectionTheme';
 
 interface ContentGridProps {
   onMediaClick: (media: MediaItem) => void;
@@ -14,16 +21,16 @@ function ContentGrid({ onMediaClick }: ContentGridProps) {
 
   if (isLoading) {
     return (
-      <div className="container py-16 px-6">
+      <div className={`${SECTION_CONTAINER_CLASS} py-16`}>
         <div className="mb-10">
-          <h2 className="text-4xl font-bold text-white netflix-accent-bar tracking-tight text-glass-strong">Trending This Year</h2>
+          <h2 className={SECTION_HEADER_CLASS}>Trending This Year</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className={TRENDING_GRID_CLASS}>
           {Array.from({ length: 20 }).map((_, i) => (
             <div key={i} className="space-y-3">
-              <Skeleton className="aspect-[2/3] w-full rounded-xl glass-panel animate-shimmer" />
-              <Skeleton className="h-4 w-3/4 glass-panel rounded-lg animate-shimmer" />
-              <Skeleton className="h-3 w-1/2 glass-panel rounded-lg animate-shimmer" />
+              <Skeleton className={`aspect-[2/3] w-full rounded-xl ${GLASS_PANEL_CLASS}`} />
+              <Skeleton className={`h-4 w-3/4 ${GLASS_PANEL_CLASS} rounded-lg`} />
+              <Skeleton className={`h-3 w-1/2 ${GLASS_PANEL_CLASS} rounded-lg`} />
             </div>
           ))}
         </div>
@@ -33,7 +40,7 @@ function ContentGrid({ onMediaClick }: ContentGridProps) {
 
   if (isError) {
     return (
-      <div className="container py-24 px-6">
+      <div className={`${SECTION_CONTAINER_CLASS} py-24`}>
         <div className="text-center space-y-5">
           <div className="flex justify-center">
             <div className="relative glass-panel glass-shadow-lg rounded-full p-6">
@@ -68,7 +75,7 @@ function ContentGrid({ onMediaClick }: ContentGridProps) {
 
   if (!content || content.length === 0) {
     return (
-      <div className="container py-24 px-6">
+      <div className={`${SECTION_CONTAINER_CLASS} py-24`}>
         <div className="text-center space-y-4">
           <h3 className="text-2xl font-semibold text-white text-glass-strong">No Content Available</h3>
           <p className="text-white/80 text-glass">
@@ -80,14 +87,14 @@ function ContentGrid({ onMediaClick }: ContentGridProps) {
   }
 
   return (
-    <div className="container py-16 px-6 content-grid-optimized">
+    <div className={`${SECTION_CONTAINER_CLASS} py-16 content-grid-optimized`}>
       <div className="mb-10">
-        <h2 className="text-4xl font-bold text-white netflix-accent-bar tracking-tight text-glass-strong">Trending This Year</h2>
+        <h2 className={SECTION_HEADER_CLASS}>Trending This Year</h2>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className={TRENDING_GRID_CLASS}>
         {content.map((item) => (
           <MediaCard
-            key={`${item.media_type}-${item.id}`}
+            key={getMediaKey(item)}
             media={item}
             onClick={() => onMediaClick(item)}
           />

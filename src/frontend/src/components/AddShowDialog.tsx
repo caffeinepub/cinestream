@@ -10,14 +10,14 @@ import {
   DialogTrigger,
 } from './ui/dialog';
 import { Input } from './ui/input';
-import { useSearchTVShows, useAddTrackedShow, getImageUrl } from '../hooks/useQueries';
+import { useSearchShows, useAddTrackedShow, getImageUrl } from '../hooks/useQueries';
 import { toast } from 'sonner';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 
 export default function AddShowDialog() {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: searchResults = [], isLoading: isSearching, error: searchError } = useSearchTVShows(searchQuery);
+  const { data: searchResults = [], isLoading: isSearching, error: searchError } = useSearchShows(searchQuery);
   const addShowMutation = useAddTrackedShow();
   const { identity } = useInternetIdentity();
 
@@ -158,4 +158,3 @@ export default function AddShowDialog() {
     </Dialog>
   );
 }
-

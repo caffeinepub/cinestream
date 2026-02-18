@@ -1,54 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Clarify Netflix section on homepage",
+  "title": "Deduplicate Netflix and Featured sections and keep section theming consistent",
   "projectName": "CineStream",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-18",
-      "text": "Ensure the homepage includes a clearly identifiable Netflix section by rendering the existing `NetflixTop10` section in the main homepage flow (so users can easily find the Netflix-related content).",
+      "id": "REQ-20",
+      "text": "Ensure the Netflix Top 10 section never renders duplicate media items; deduplicate by the stable key `${media_type}-${id}` before selecting the Top 10, and if duplicates exist in the source list, backfill with the next unique items so the section still shows up to 10 unique entries when available.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "make it clear which is the netflix section"
+          "please do not include duplicates found in netflix section."
         ]
       },
       "acceptanceCriteria": [
-        "On the homepage, a Netflix-specific section is visible without requiring login.",
-        "The Netflix section is rendered using the existing `frontend/src/components/NetflixTop10.tsx` component and appears in the main `<main>` content flow (alongside Featured and Trending sections).",
-        "Clicking an item inside the Netflix section triggers the same trailer/open behavior as other media sections (i.e., uses the same `onMediaClick` handler wiring as other rows/grids)."
+        "When the underlying trending dataset contains repeated items with the same `${media_type}-${id}`, Netflix Top 10 renders each such item at most once.",
+        "If at least 10 unique items exist in the input list, the Netflix Top 10 section displays exactly 10 items after deduplication.",
+        "No React key warnings occur in the console for Netflix Top 10 renders."
       ]
     },
     {
-      "id": "REQ-19",
-      "text": "Update the Netflix section’s header/labeling so it is unambiguous that the section is Netflix-related (e.g., the title text explicitly includes the word “Netflix”).",
+      "id": "REQ-21",
+      "text": "Remove duplicates across sections by filtering the Featured section so it does not include any media item that appears in the Trending section (ContentGrid), using the stable key `${media_type}-${id}`; if removals reduce the Featured list, backfill with additional unique featured candidates so Featured still shows its intended number of items whenever enough unique items exist.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "make it clear which is the netflix section"
+          "also remove duplicates in featured section found in trending section."
         ]
       },
       "acceptanceCriteria": [
-        "The Netflix section header includes clear English text that explicitly names Netflix (for example: “Netflix Top 10” or “Top 10 on Netflix”), not just “Top 10”.",
-        "The Netflix label is present in both loading and loaded states of the Netflix section.",
-        "The Netflix section remains visually distinct from other sections via its header block (e.g., Netflix logo + explicit Netflix text, consistent spacing), without reducing readability on dark/glass backgrounds."
+        "If an item is present in Trending (ContentGrid), it does not appear in Featured.",
+        "Featured maintains a consistent item count (e.g., 12) when enough unique featured candidates exist after excluding Trending items.",
+        "The filtering logic matches by `${media_type}-${id}` (so movie and TV items with the same numeric id are treated as distinct)."
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "text": "Ensure each homepage category/section (Featured, Netflix Top 10, Trending) continues to follow the existing site theme after deduplication changes, preserving consistent typography, spacing, glassmorphic styling, and section header treatments so the sections still look visually cohesive.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "ensure each category follows the theme."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Featured, Netflix Top 10, and Trending sections keep consistent header styling (font weight, color, and theme treatments) and do not visually regress after the deduplication changes.",
+        "Card styling remains consistent across sections (no unexpected background/contrast changes introduced by the deduplication work)."
       ]
     }
   ],
   "constraints": [
-    "Use English for all user-facing text.",
-    "Frontend immutable paths must not be modified: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and anything under `frontend/src/components/ui`.",
-    "Keep changes scoped to clarifying which homepage section is the Netflix section; do not introduce new auth providers or external services."
+    "Frontend files under `frontend/src/components/ui` must not be modified directly; compose them instead.",
+    "Do not edit any paths listed in `frontend.immutablePaths` in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not change TMDB fetching logic, ranking logic, or add new data sources for Netflix.",
-    "Do not redesign the entire homepage layout beyond what is necessary to make the Netflix section clearly identifiable."
+    "Do not change TMDB query semantics (sorting/time-window) beyond what is necessary to deduplicate rendered results.",
+    "Do not add new homepage sections or new recommendation logic beyond removing duplicates across the specified sections.",
+    "Do not modify backend storage schemas or Motoko canister APIs for this change."
   ],
   "imageRequirements": {
     "required": [],

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 43,
+  "projectStateVersion": 45,
   "summary": "CineStream is a React (Vite) + Motoko (Internet Computer) web app for discovering trending movies/TV shows from TMDB, featuring a Netflix-inspired/glassmorphic UI, trailer playback, and auto-refreshing trending content (target: every 30 minutes). Logged-in users (Internet Identity) can track TV shows with per-user profiles and a new-episode indicator based on last visit. The frontend uses TanStack React Query for caching/refresh and resilient TMDB fetching, while the backend canister provides access-controlled storage for user profiles, tracked show IDs, and last-visit timestamps (plus optional admin role management). The repo also includes generic IC HTTP outcall helpers and a Caffeine.ai blob-storage mixin/utility for canister storage operations.",
   "architectural_notes": [
     "Frontend: React + Vite + TypeScript with TailwindCSS styling and shadcn/ui-style components (Dialog, Button, Input, etc.).",
@@ -26,7 +26,7 @@
     "Repeated production deployment failures persisted across multiple versions; root cause may include build-time config/env var handling, empty/stub component imports, duplicate providers, or canister init traps and needs systematic stabilization.",
     "Page performance: noticeable lag/sluggishness during use (user-reported)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "generatedImages": [
     {
       "filename": "frontend/public/assets/generated/film-reel-transparent.dim_64x64.png",
@@ -388,6 +388,30 @@
         "REQ-19"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-the-netflix-top-10-section-never-renders-duplicate-media-items-deduplicate-by-the-stable-key-media-type-id-before-selecting-the-top-10-and-if-duplicates-exist-in-the-source-list-backfill-with-the-next-unique-items-so-the-section-still-shows-up-to-10-unique-entries-when-available",
+      "title": "Ensure the Netflix Top 10 section never renders duplicate media items; deduplicate by the stable key `${media_type}-${id}` before selecting the Top 10, and if duplicates exist in the source list, backfill with the next unique items so the section still shows up to 10 unique entries when available.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-duplicates-across-sections-by-filtering-the-featured-section-so-it-does-not-include-any-media-item-that-appears-in-the-trending-section-contentgrid-using-the-stable-key-media-type-id-if-removals-reduce-the-featured-list-backfill-with-additional-unique-featured-candidates-so-featured-still-shows-its-intended-number-of-items-whenever-enough-unique-items-exist",
+      "title": "Remove duplicates across sections by filtering the Featured section so it does not include any media item that appears in the Trending section (ContentGrid), using the stable key `${media_type}-${id}`; if removals reduce the Featured list, backfill with additional unique featured candidates so Featured still shows its intended number of items whenever enough unique items exist.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-each-homepage-category-section-featured-netflix-top-10-trending-continues-to-follow-the-existing-site-theme-after-deduplication-changes-preserving-consistent-typography-spacing-glassmorphic-styling-and-section-header-treatments-so-the-sections-still-look-visually-cohesive",
+      "title": "Ensure each homepage category/section (Featured, Netflix Top 10, Trending) continues to follow the existing site theme after deduplication changes, preserving consistent typography, spacing, glassmorphic styling, and section header treatments so the sections still look visually cohesive.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -426,6 +450,12 @@
     {
       "id": "AR-10",
       "summary": "Update the UI to clearly label/indicate which homepage section corresponds to Netflix (e.g., the 'Netflix Top 10' section) so users can easily identify it.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Deduplicate homepage content across sections: remove duplicates within the Netflix section, and remove items from Featured that also appear in Trending; ensure each category/section remains theme-consistent after deduping.",
       "reqIds": [],
       "status": "pending"
     }

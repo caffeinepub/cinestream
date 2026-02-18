@@ -1,37 +1,77 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Clarify Netflix section on homepage (CineStream)",
+  "title": "CineStream homepage deduplication and section theme consistency",
   "requirements": [
     {
-      "id": "REQ-18",
-      "summary": "Render the existing NetflixTop10 section in the homepage main flow and wire it to the shared media click handler.",
+      "id": "REQ-20",
+      "summary": "Deduplicate Netflix Top 10 items by stable key before selecting the Top 10, backfilling with next unique items to show up to 10 unique entries.",
       "acceptanceCriteria": [
-        "On the homepage, a Netflix-specific section is visible without requiring login.",
-        "The Netflix section is rendered using the existing `frontend/src/components/NetflixTop10.tsx` component and appears in the main `<main>` content flow (alongside Featured and Trending sections).",
-        "Clicking an item inside the Netflix section triggers the same trailer/open behavior as other media sections (i.e., uses the same `onMediaClick` handler wiring as other rows/grids)."
+        "When the underlying trending dataset contains repeated items with the same `${media_type}-${id}`, Netflix Top 10 renders each such item at most once.",
+        "If at least 10 unique items exist in the input list, the Netflix Top 10 section displays exactly 10 items after deduplication.",
+        "No React key warnings occur in the console for Netflix Top 10 renders."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/lib/mediaKeys.ts",
+          "operation": "create",
+          "description": "Add stable key helper(s) (e.g., build `${media_type}-${id}`) and reusable utilities to select the first N unique MediaItem entries while preserving order for backfilling behavior."
+        },
+        {
+          "path": "frontend/src/components/NetflixTop10.tsx",
           "operation": "modify",
-          "description": "Import and render the existing `NetflixTop10` component within the homepage `<main>` flow (near `FeaturedRow` and `ContentGrid`) and pass the shared `handleMediaClick` as `onMediaClick` so trailer/open behavior matches other sections."
+          "description": "Use the stable key helper and unique-selection utility to deduplicate the trending source list before choosing the Top 10; ensure mapping uses the stable key for React keys and still renders up to 10 unique entries when available, without changing existing section markup/styling."
         }
       ]
     },
     {
-      "id": "REQ-19",
-      "summary": "Make the Netflix section header explicitly identify Netflix in both loading and loaded states and keep it visually distinct/readable on dark/glass backgrounds.",
+      "id": "REQ-21",
+      "summary": "Filter Featured to exclude any item present in Trending (ContentGrid) by stable key, and backfill from additional featured candidates to maintain the intended Featured item count when possible.",
       "acceptanceCriteria": [
-        "The Netflix section header includes clear English text that explicitly names Netflix (for example: “Netflix Top 10” or “Top 10 on Netflix”), not just “Top 10”.",
-        "The Netflix label is present in both loading and loaded states of the Netflix section.",
-        "The Netflix section remains visually distinct from other sections via its header block (e.g., Netflix logo + explicit Netflix text, consistent spacing), without reducing readability on dark/glass backgrounds."
+        "If an item is present in Trending (ContentGrid), it does not appear in Featured.",
+        "Featured maintains a consistent item count (e.g., 12) when enough unique featured candidates exist after excluding Trending items.",
+        "The filtering logic matches by `${media_type}-${id}` (so movie and TV items with the same numeric id are treated as distinct)."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Adjust featured content fetching to provide enough featured candidates for UI-side filtering/backfilling (e.g., return a larger sorted candidate list rather than slicing to 12 in the fetch layer), without changing TMDB query semantics beyond supporting deduplicated rendering."
+        },
+        {
+          "path": "frontend/src/components/FeaturedRow.tsx",
+          "operation": "modify",
+          "description": "Use `useTrendingContent()` to build a set of stable keys currently shown in Trending, then filter featured candidates to exclude those keys; backfill by continuing through the featured candidate list until the intended Featured count is reached (when enough unique items exist), using the shared stable key helper for comparisons and React keys."
+        }
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "summary": "Preserve cohesive homepage theming (typography, spacing, glassmorphic styling, and header treatments) for Featured, Netflix Top 10, and Trending after deduplication-related refactors.",
+      "acceptanceCriteria": [
+        "Featured, Netflix Top 10, and Trending sections keep consistent header styling (font weight, color, and theme treatments) and do not visually regress after the deduplication changes.",
+        "Card styling remains consistent across sections (no unexpected background/contrast changes introduced by the deduplication work)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/sectionTheme.ts",
+          "operation": "create",
+          "description": "Add shared constants/helpers for section header className strings and section spacing wrappers (reusing the exact existing class values) to reduce accidental styling drift during dedup-related edits."
+        },
+        {
           "path": "frontend/src/components/NetflixTop10.tsx",
           "operation": "modify",
-          "description": "Update the section header text in both loading and loaded render paths to explicitly include the word \"Netflix\" (e.g., \"Netflix Top 10\" / \"Top 10 on Netflix\"), while retaining the existing logo asset at `frontend/public/assets/generated/netflix-logo-transparent.dim_200x100.png` and ensuring header styling remains distinct and readable on dark/glass backgrounds."
+          "description": "Refactor to reference shared section theme constants for header/wrapper styling while keeping the rendered class values identical; ensure dedup logic does not alter glassmorphic visuals."
+        },
+        {
+          "path": "frontend/src/components/FeaturedRow.tsx",
+          "operation": "modify",
+          "description": "Refactor to reference shared section theme constants for header/wrapper styling while keeping the rendered class values identical; ensure filtering/backfill logic does not change card styling."
+        },
+        {
+          "path": "frontend/src/components/ContentGrid.tsx",
+          "operation": "modify",
+          "description": "Refactor to reference shared section theme constants for the Trending header/wrapper styling while keeping the rendered class values identical; do not modify any `frontend/src/components/ui` files—compose existing styles only."
         }
       ]
     }

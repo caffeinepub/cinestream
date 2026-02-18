@@ -3,6 +3,13 @@ import { useTrendingContent } from '../hooks/useQueries';
 import MediaCard from './MediaCard';
 import { Skeleton } from './ui/skeleton';
 import type { MediaItem } from '../App';
+import { selectUniqueMedia, getMediaKey } from '../lib/mediaKeys';
+import { 
+  SECTION_SPACING_CLASS, 
+  SECTION_CONTAINER_CLASS, 
+  NETFLIX_GRID_CLASS,
+  GLASS_PANEL_CLASS 
+} from '../lib/sectionTheme';
 
 interface NetflixTop10Props {
   onMediaClick: (media: MediaItem) => void;
@@ -13,8 +20,8 @@ export default function NetflixTop10({ onMediaClick }: NetflixTop10Props) {
 
   if (isLoading) {
     return (
-      <section className="py-12">
-        <div className="container px-6">
+      <section className={SECTION_SPACING_CLASS}>
+        <div className={SECTION_CONTAINER_CLASS}>
           <div className="flex items-center gap-3 mb-8">
             <img
               src="/assets/generated/netflix-logo-transparent.dim_200x100.png"
@@ -23,9 +30,9 @@ export default function NetflixTop10({ onMediaClick }: NetflixTop10Props) {
             />
             <h2 className="text-3xl font-bold text-white text-glass-strong">Netflix Top 10</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className={NETFLIX_GRID_CLASS}>
             {Array.from({ length: 10 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-[2/3] rounded-xl glass-panel animate-shimmer" />
+              <Skeleton key={i} className={`aspect-[2/3] rounded-xl ${GLASS_PANEL_CLASS}`} />
             ))}
           </div>
         </div>
@@ -33,13 +40,14 @@ export default function NetflixTop10({ onMediaClick }: NetflixTop10Props) {
     );
   }
 
-  const top10 = content?.slice(0, 10) || [];
+  // Deduplicate and select top 10 unique items
+  const top10 = content ? selectUniqueMedia(content, 10) : [];
 
   if (top10.length === 0) return null;
 
   return (
-    <section className="py-12">
-      <div className="container px-6">
+    <section className={SECTION_SPACING_CLASS}>
+      <div className={SECTION_CONTAINER_CLASS}>
         <div className="flex items-center gap-3 mb-8">
           <img
             src="/assets/generated/netflix-logo-transparent.dim_200x100.png"
@@ -48,9 +56,9 @@ export default function NetflixTop10({ onMediaClick }: NetflixTop10Props) {
           />
           <h2 className="text-3xl font-bold text-white text-glass-strong">Netflix Top 10</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className={NETFLIX_GRID_CLASS}>
           {top10.map((item, index) => (
-            <div key={`${item.media_type}-${item.id}`} className="relative">
+            <div key={getMediaKey(item)} className="relative">
               <div className="absolute -top-2 -left-2 z-10 w-12 h-12 rounded-full glass-panel-strong flex items-center justify-center border-2 border-white/30 glass-shadow-lg">
                 <span className="text-2xl font-bold text-white text-glass-strong">{index + 1}</span>
               </div>

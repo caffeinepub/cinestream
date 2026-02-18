@@ -1,35 +1,56 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T23:59:46.156Z",
+  "generatedAt": "2026-02-18T00:12:15.444Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-18",
-        "summary": "Ensure the homepage includes a clearly identifiable Netflix section by rendering the existing `NetflixTop10` section in the main homepage flow (so users can easily find the Netflix-related content).",
+        "id": "REQ-20",
+        "summary": "Ensure the Netflix Top 10 section never renders duplicate media items; deduplicate by the stable key `${media_type}-${id}` before selecting the Top 10, and if duplicates exist in the source list, backfill with the next unique items so the section still shows up to 10 unique entries when available.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/lib/mediaKeys.ts",
+          "frontend/src/components/NetflixTop10.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/lib/mediaKeys.ts",
+          "frontend/src/components/NetflixTop10.tsx"
         ]
       },
       {
-        "id": "REQ-19",
-        "summary": "Update the Netflix section’s header/labeling so it is unambiguous that the section is Netflix-related (e.g., the title text explicitly includes the word “Netflix”).",
+        "id": "REQ-21",
+        "summary": "Remove duplicates across sections by filtering the Featured section so it does not include any media item that appears in the Trending section (ContentGrid), using the stable key `${media_type}-${id}`; if removals reduce the Featured list, backfill with additional unique featured candidates so Featured still shows its intended number of items whenever enough unique items exist.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/NetflixTop10.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/FeaturedRow.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/NetflixTop10.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/FeaturedRow.tsx"
+        ]
+      },
+      {
+        "id": "REQ-22",
+        "summary": "Ensure each homepage category/section (Featured, Netflix Top 10, Trending) continues to follow the existing site theme after deduplication changes, preserving consistent typography, spacing, glassmorphic styling, and section header treatments so the sections still look visually cohesive.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/lib/sectionTheme.ts",
+          "frontend/src/components/NetflixTop10.tsx",
+          "frontend/src/components/FeaturedRow.tsx",
+          "frontend/src/components/ContentGrid.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/lib/sectionTheme.ts",
+          "frontend/src/components/NetflixTop10.tsx",
+          "frontend/src/components/FeaturedRow.tsx",
+          "frontend/src/components/ContentGrid.tsx"
         ]
       }
     ]
@@ -39,8 +60,14 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
+    "frontend/src/components/AddShowDialog.tsx",
+    "frontend/src/components/ContentGrid.tsx",
+    "frontend/src/components/FeaturedRow.tsx",
     "frontend/src/components/NetflixTop10.tsx",
+    "frontend/src/components/TrailerModal.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/mediaKeys.ts",
+    "frontend/src/lib/sectionTheme.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

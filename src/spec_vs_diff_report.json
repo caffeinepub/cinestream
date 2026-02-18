@@ -1,37 +1,64 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T23:59:46.153Z",
-  "summary": "REQ-18 and REQ-19 appear implemented: the existing NetflixTop10 component is rendered in the homepage <main> flow and wired to the shared onMediaClick handler, and the Netflix section header clearly includes “Netflix Top 10” in both loading and loaded states with a logo. However, App.tsx also includes additional behavior changes (query default options + modal close timeout/state management) that were not requested and are arguably out of scope for “clarifying which homepage section is the Netflix section.”",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-18T00:12:15.440Z",
+  "summary": "REQ-20 and REQ-21 appear implemented via new stable media key + dedup/filter utilities and usage in NetflixTop10/FeaturedRow. There is insufficient evidence that REQ-22 (consistent theming across Featured/NetflixTop10/Trending) is fully met, because NetflixTop10’s header styling does not appear to use the shared section header theme tokens that were introduced and used elsewhere.",
+  "missing_requirements": [
     {
-      "description": "Added/changed trailer modal selection/close behavior using a close-timeout ref and delayed clearing of selectedMedia (additional state management beyond Netflix section clarity).",
-      "reason": "BuildRequest constrains changes to clarifying the Netflix section; this modal state management change is not requested by REQ-18/REQ-19.",
+      "id": "REQ-22",
+      "requirement": "Ensure each homepage category/section (Featured, Netflix Top 10, Trending) continues to follow the existing site theme after deduplication changes, preserving consistent typography, spacing, glassmorphic styling, and section header treatments so the sections still look visually cohesive.",
+      "reason": "The diff shows a central theme file (sectionTheme.ts) and usage in ContentGrid/FeaturedRow, but NetflixTop10’s header uses its own hard-coded classes and does not appear to apply the shared header treatment (e.g., netflix-accent-bar / consistent sizing) introduced for other sections, which may break the required cross-section consistency.",
       "evidence": [
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "Set global React Query default options at runtime (refetchOnWindowFocus false, retry 2).",
-      "reason": "Not requested by REQ-18/REQ-19 and not necessary to clarify the Netflix section; may violate the “keep changes scoped” constraint.",
-      "evidence": [
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "Documentation/summary claims of many other UI/data-hook changes (Header/Hero/FilterBar/TrailerModal/index.css/useQueries/etc.) that are not part of the requested Netflix-section clarification work.",
-      "reason": "Not requested by REQ-18/REQ-19; these appear as added claims in the modified summaries file (even if not actually implemented in this diff).",
-      "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/lib/sectionTheme.ts",
+        "frontend/src/components/ContentGrid.tsx",
+        "frontend/src/components/FeaturedRow.tsx",
+        "frontend/src/components/NetflixTop10.tsx"
       ]
     }
   ],
-  "confidence": 0.76,
+  "hallucinated_features": [
+    {
+      "description": "TMDB API connectivity/health-check system with caching and detailed status messaging.",
+      "reason": "Not requested by the BuildRequest; the request was limited to deduplication across sections and preserving theming consistency.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "description": "Extensive trailer modal refactor with new dev logging, iframe lifecycle handling, and expanded error categorization/retry behavior.",
+      "reason": "Not requested; the BuildRequest does not mention trailer behavior changes.",
+      "evidence": [
+        "frontend/src/components/TrailerModal.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "description": "Large glassmorphic/typography redesign work across unrelated components (e.g., Header, Footer, MediaCard, TrackedShows, ProfileSetupDialog) and global CSS stacking/iframe rules.",
+      "reason": "Not requested; REQ-22 only asks to preserve existing theming for the specified homepage sections, not to introduce broad new styling changes elsewhere.",
+      "evidence": [
+        "frontend-file-summaries.txt (Header.tsx, Footer.tsx, MediaCard.tsx, TrackedShows.tsx, ProfileSetupDialog.tsx, index.css)"
+      ]
+    },
+    {
+      "description": "AddShowDialog behavioral changes (login gating, revised error messaging, and switching search hook usage) beyond deduplication scope.",
+      "reason": "Not requested by the BuildRequest.",
+      "evidence": [
+        "frontend/src/components/AddShowDialog.tsx",
+        "frontend-file-summaries.txt (AddShowDialog.tsx)"
+      ]
+    }
+  ],
+  "confidence": 0.64,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
+    "frontend/src/components/AddShowDialog.tsx",
+    "frontend/src/components/ContentGrid.tsx",
+    "frontend/src/components/FeaturedRow.tsx",
     "frontend/src/components/NetflixTop10.tsx",
+    "frontend/src/components/TrailerModal.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/mediaKeys.ts",
+    "frontend/src/lib/sectionTheme.ts",
     "project_state.json"
   ]
 }

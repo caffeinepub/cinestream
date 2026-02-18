@@ -220,41 +220,42 @@ async function fetchTrendingTVShows(): Promise<MediaItem[]> {
 }
 
 // Fetch featured content (curated from trending/discover endpoints)
+// Returns a larger candidate list to support UI-side filtering/backfilling
 async function fetchFeaturedContent(): Promise<MediaItem[]> {
   const oneYearAgo = getOneYearAgo();
   const today = getToday();
   
-  // Fetch both movies and TV shows with high popularity
-  const [moviesData, tvData] = await Promise.all([
-    handleTMDBRequest<{ results: any[] }>(
-      `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&primary_release_date.gte=${oneYearAgo}&primary_release_date.lte=${today}&vote_average.gte=7&page=1`,
-      'Failed to fetch featured movies'
-    ),
-    handleTMDBRequest<{ results: any[] }>(
-      `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&first_air_date.gte=${oneYearAgo}&first_air_date.lte=${today}&vote_average.gte=7&page=1`,
-      'Failed to fetch featured TV shows'
-    ),
+  // Fetch multiple pages to provide enough candidates for deduplication
+  const movieUrl1 = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=vote_average.desc&vote_count.gte=1000&primary_release_date.gte=${oneYearAgo}&primary_release_date.lte=${today}&page=1`;
+  const movieUrl2 = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=vote_average.desc&vote_count.gte=1000&primary_release_date.gte=${oneYearAgo}&primary_release_date.lte=${today}&page=2`;
+  const tvUrl1 = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&language=en-US&sort_by=vote_average.desc&vote_count.gte=500&first_air_date.gte=${oneYearAgo}&first_air_date.lte=${today}&page=1`;
+  const tvUrl2 = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&language=en-US&sort_by=vote_average.desc&vote_count.gte=500&first_air_date.gte=${oneYearAgo}&first_air_date.lte=${today}&page=2`;
+  
+  const [movieData1, movieData2, tvData1, tvData2] = await Promise.all([
+    handleTMDBRequest<{ results: any[] }>(movieUrl1, 'Failed to fetch featured movies page 1'),
+    handleTMDBRequest<{ results: any[] }>(movieUrl2, 'Failed to fetch featured movies page 2'),
+    handleTMDBRequest<{ results: any[] }>(tvUrl1, 'Failed to fetch featured TV shows page 1'),
+    handleTMDBRequest<{ results: any[] }>(tvUrl2, 'Failed to fetch featured TV shows page 2'),
   ]);
   
-  if (!moviesData?.results && !tvData?.results) return [];
+  const movies1 = movieData1?.results?.map((item: any) => ({ ...item, media_type: 'movie' as const })) || [];
+  const movies2 = movieData2?.results?.map((item: any) => ({ ...item, media_type: 'movie' as const })) || [];
+  const tvShows1 = tvData1?.results?.map((item: any) => ({ ...item, media_type: 'tv' as const })) || [];
+  const tvShows2 = tvData2?.results?.map((item: any) => ({ ...item, media_type: 'tv' as const })) || [];
   
-  const movies = (moviesData?.results || []).map((item: any) => ({ ...item, media_type: 'movie' as const }));
-  const tvShows = (tvData?.results || []).map((item: any) => ({ ...item, media_type: 'tv' as const }));
-  
-  // Combine and sort by popularity, then take top 12 for featured row
-  const combined = [...movies, ...tvShows].sort((a, b) => b.popularity - a.popularity);
-  return combined.slice(0, 12);
+  // Combine and sort by vote average to provide high-quality candidates
+  const combined = [...movies1, ...movies2, ...tvShows1, ...tvShows2];
+  return combined.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
 }
 
-// Fetch trailer for a specific media item with detailed error categorization
+// Fetch trailer for a specific media item
 async function fetchTrailer(mediaId: number, mediaType: 'movie' | 'tv'): Promise<TrailerResult> {
   const url = `${TMDB_BASE_URL}/${mediaType}/${mediaId}/videos?api_key=${TMDB_API_KEY}&language=en-US`;
   
   try {
-    const response = await fetchWithTimeout(url, 10000); // 10 second timeout
+    const response = await fetchWithTimeout(url, 8000); // 8 second timeout
     
     if (!response.ok) {
-      // Categorize HTTP errors
       if (response.status === 429) {
         devLog.trailerFetch('rate-limit', { mediaId, mediaType });
         return { status: 'error', errorType: 'rate-limit' };
@@ -268,88 +269,38 @@ async function fetchTrailer(mediaId: number, mediaType: 'movie' | 'tv'): Promise
     }
     
     const data = await response.json();
-    
-    if (!data || !data.results) {
-      devLog.trailerFetch('no-trailer', { mediaId, mediaType });
-      return { status: 'no-trailer' };
-    }
-    
-    const trailer = data.results.find(
+    const trailer = data.results?.find(
       (video: any) => video.type === 'Trailer' && video.site === 'YouTube'
     );
     
-    if (!trailer) {
-      devLog.trailerFetch('no-trailer', { mediaId, mediaType });
-      return { status: 'no-trailer' };
+    if (trailer?.key) {
+      devLog.trailerFetch('success', { mediaId, mediaType, hasKey: true });
+      return { status: 'success', key: trailer.key };
     }
     
-    devLog.trailerFetch('success', { mediaId, mediaType, hasKey: !!trailer.key });
-    return { status: 'success', key: trailer.key };
+    devLog.trailerFetch('no-trailer', { mediaId, mediaType });
+    return { status: 'no-trailer' };
   } catch (error) {
-    // Categorize network errors
     if (error instanceof Error && error.name === 'AbortError') {
       devLog.trailerFetch('timeout', { mediaId, mediaType });
       return { status: 'error', errorType: 'timeout' };
     }
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      devLog.trailerFetch('network', { mediaId, mediaType });
-      return { status: 'error', errorType: 'network' };
-    }
-    devLog.trailerFetch('unknown', { mediaId, mediaType, error: error instanceof Error ? error.message : 'Unknown' });
-    return { status: 'error', errorType: 'unknown' };
+    devLog.trailerFetch('network', { mediaId, mediaType });
+    return { status: 'error', errorType: 'network' };
   }
 }
 
-// Fetch TV show details including last air date
-async function fetchTVShowDetails(tvId: number): Promise<{ lastAirDate: string | null; posterPath: string | null; title: string }> {
-  const url = `${TMDB_BASE_URL}/tv/${tvId}?api_key=${TMDB_API_KEY}&language=en-US`;
-  
-  const data = await handleTMDBRequest<any>(
-    url,
-    `Failed to fetch TV show details for ${tvId}`
-  );
-  
-  if (!data) {
-    throw new Error('Failed to fetch TV show details');
-  }
-  
-  return {
-    lastAirDate: data.last_air_date || null,
-    posterPath: data.poster_path || null,
-    title: data.name || 'Unknown Show',
-  };
-}
+// React Query Hooks
 
-// Search TV shows by name
-async function searchTVShows(query: string): Promise<SearchResult[]> {
-  if (!query.trim()) return [];
-  
-  const url = `${TMDB_BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1`;
-  
-  const data = await handleTMDBRequest<{ results: any[] }>(
-    url,
-    `Failed to search TV shows for "${query}"`
-  );
-  
-  if (!data || !data.results) return [];
-  
-  return data.results.slice(0, 10); // Return top 10 results
-}
-
-// Hook to verify TMDB API health
 export function useTMDBHealth() {
   return useQuery<ApiHealthStatus>({
     queryKey: ['tmdb-health'],
     queryFn: verifyTMDBConnection,
     staleTime: HEALTH_CHECK_INTERVAL,
     refetchInterval: HEALTH_CHECK_INTERVAL,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    retry: 1,
   });
 }
 
-// Hook to fetch all trending content with automatic 30-minute refresh
 export function useTrendingContent() {
   return useQuery<MediaItem[]>({
     queryKey: ['trending-content'],
@@ -358,58 +309,44 @@ export function useTrendingContent() {
         fetchTrendingMovies(),
         fetchTrendingTVShows(),
       ]);
-      return [...movies, ...tvShows].sort((a, b) => b.vote_average - a.vote_average);
+      
+      // Combine and sort by popularity
+      const combined = [...movies, ...tvShows];
+      return combined.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
     },
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    refetchInterval: 1000 * 60 * 30, // Automatically refetch every 30 minutes
-    refetchOnMount: true,
-    refetchIntervalInBackground: false, // Don't refetch when tab is not visible
-    retry: 2, // Retry failed requests twice
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    refetchInterval: 30 * 60 * 1000, // Auto-refresh every 30 minutes
   });
 }
 
-// Hook to fetch featured content with automatic 30-minute refresh
 export function useFeaturedContent() {
   return useQuery<MediaItem[]>({
     queryKey: ['featured-content'],
     queryFn: fetchFeaturedContent,
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    refetchInterval: 1000 * 60 * 30, // Automatically refetch every 30 minutes
-    refetchOnMount: true,
-    refetchIntervalInBackground: false, // Don't refetch when tab is not visible
-    retry: 2, // Retry failed requests twice
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 60 * 60 * 1000, // 1 hour
   });
 }
 
-// Hook to fetch trailer - always fresh on modal open
-export function useTrailer(
-  mediaId: number | null,
-  mediaType: 'movie' | 'tv' | null,
-  isModalOpen: boolean
-) {
+export function useTrailer(mediaId: number | undefined, mediaType: 'movie' | 'tv' | undefined) {
   return useQuery<TrailerResult>({
-    queryKey: ['trailer', mediaId, mediaType],
+    queryKey: ['trailer', String(mediaId), mediaType],
     queryFn: async () => {
       if (!mediaId || !mediaType) {
-        throw new Error('Media ID and type are required');
+        return { status: 'no-trailer' };
       }
-      
       return fetchTrailer(mediaId, mediaType);
     },
-    enabled: !!mediaId && !!mediaType && isModalOpen,
-    staleTime: 0, // Always consider data stale
-    gcTime: 0, // Don't cache results
-    refetchOnMount: 'always', // Always refetch when component mounts
-    retry: false, // Don't retry on error - let user manually retry
+    enabled: !!mediaId && !!mediaType,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
-// Hook to get caller's user profile
+// User Profile Hooks
+
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
@@ -417,7 +354,7 @@ export function useGetCallerUserProfile() {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !actorFetching && !!identity,
+    enabled: !!actor && !actorFetching,
     retry: false,
   });
 
@@ -428,7 +365,6 @@ export function useGetCallerUserProfile() {
   };
 }
 
-// Hook to save caller's user profile
 export function useSaveCallerUserProfile() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -436,7 +372,7 @@ export function useSaveCallerUserProfile() {
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.saveCallerUserProfile(profile);
+      return actor.saveCallerUserProfile(profile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -444,23 +380,22 @@ export function useSaveCallerUserProfile() {
   });
 }
 
-// Hook to get tracked shows from backend
+// Tracked Shows Hooks
+
 export function useGetTrackedShows() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching } = useActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<string[]>({
-    queryKey: ['tracked-shows'],
+    queryKey: ['trackedShows'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) return [];
       return actor.getTrackedShows();
     },
-    enabled: !!actor && !actorFetching && !!identity,
-    retry: 1,
+    enabled: !!actor && !isFetching && !!identity,
   });
 }
 
-// Hook to add tracked show to backend
 export function useAddTrackedShow() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -468,20 +403,15 @@ export function useAddTrackedShow() {
   return useMutation({
     mutationFn: async (showId: string) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.addTrackedShow(showId);
+      return actor.addTrackedShow(showId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tracked-shows'] });
-      queryClient.invalidateQueries({ queryKey: ['tracked-shows-details'] });
-    },
-    onError: (error: any) => {
-      console.error('Error adding tracked show:', error);
-      throw new Error(error?.message || 'Failed to add show to tracked list');
+      queryClient.invalidateQueries({ queryKey: ['trackedShows'] });
+      queryClient.invalidateQueries({ queryKey: ['trackedShowsDetails'] });
     },
   });
 }
 
-// Hook to remove tracked show from backend
 export function useRemoveTrackedShow() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -489,105 +419,113 @@ export function useRemoveTrackedShow() {
   return useMutation({
     mutationFn: async (showId: string) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.removeTrackedShow(showId);
+      return actor.removeTrackedShow(showId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tracked-shows'] });
-      queryClient.invalidateQueries({ queryKey: ['tracked-shows-details'] });
-    },
-    onError: (error: any) => {
-      console.error('Error removing tracked show:', error);
-      throw new Error(error?.message || 'Failed to remove show from tracked list');
+      queryClient.invalidateQueries({ queryKey: ['trackedShows'] });
+      queryClient.invalidateQueries({ queryKey: ['trackedShowsDetails'] });
     },
   });
 }
 
-// Hook to get last visit timestamp
-export function useGetLastVisit() {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<bigint | null>({
-    queryKey: ['last-visit'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getLastVisit();
-    },
-    enabled: !!actor && !actorFetching && !!identity,
-    retry: 1,
-  });
-}
-
-// Hook to update last visit timestamp
 export function useUpdateLastVisit() {
   const { actor } = useActor();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      await actor.updateLastVisit();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['last-visit'] });
+      return actor.updateLastVisit();
     },
   });
 }
 
-// Hook to get tracked shows with details (including new episode indicators)
+export function useGetLastVisit() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<bigint | null>({
+    queryKey: ['lastVisit'],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getLastVisit();
+    },
+    enabled: !!actor && !isFetching && !!identity,
+  });
+}
+
+async function fetchShowDetails(showId: string, lastVisit: bigint | null): Promise<TrackedShowDetails | null> {
+  const url = `${TMDB_BASE_URL}/tv/${showId}?api_key=${TMDB_API_KEY}&language=en-US`;
+  
+  const data = await handleTMDBRequest<any>(
+    url,
+    `Failed to fetch show details for ${showId}`
+  );
+  
+  if (!data) return null;
+  
+  const lastAirDate = data.last_air_date || null;
+  const hasNewEpisode = lastVisit && lastAirDate 
+    ? new Date(lastAirDate).getTime() > Number(lastVisit) / 1_000_000
+    : false;
+  
+  return {
+    id: data.id,
+    title: data.name || 'Unknown',
+    lastAirDate,
+    posterPath: data.poster_path,
+    hasNewEpisode,
+  };
+}
+
 export function useGetTrackedShowsDetails() {
-  const { data: trackedShowIds, isLoading: isLoadingIds } = useGetTrackedShows();
+  const { data: trackedShowIds } = useGetTrackedShows();
   const { data: lastVisit } = useGetLastVisit();
 
   return useQuery<TrackedShowDetails[]>({
-    queryKey: ['tracked-shows-details', trackedShowIds, lastVisit?.toString()],
+    queryKey: ['trackedShowsDetails', trackedShowIds, String(lastVisit)],
     queryFn: async () => {
       if (!trackedShowIds || trackedShowIds.length === 0) return [];
-
-      const showDetailsPromises = trackedShowIds.map(async (showId) => {
-        try {
-          const details = await fetchTVShowDetails(Number(showId));
-          
-          // Check if there's a new episode since last visit
-          const hasNewEpisode = lastVisit && details.lastAirDate
-            ? new Date(details.lastAirDate).getTime() > Number(lastVisit) / 1_000_000
-            : false;
-
-          return {
-            id: Number(showId),
-            title: details.title,
-            lastAirDate: details.lastAirDate,
-            posterPath: details.posterPath,
-            hasNewEpisode,
-          };
-        } catch (error) {
-          console.error(`Failed to fetch details for show ${showId}:`, error);
-          return null;
-        }
-      });
-
-      const results = await Promise.all(showDetailsPromises);
-      return results.filter((show): show is TrackedShowDetails => show !== null);
+      
+      const details = await Promise.all(
+        trackedShowIds.map(id => fetchShowDetails(id, lastVisit || null))
+      );
+      
+      return details.filter((show): show is TrackedShowDetails => show !== null);
     },
     enabled: !!trackedShowIds && trackedShowIds.length > 0,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Hook to search TV shows
-export function useSearchTVShows(query: string) {
+export function useSearchShows(query: string) {
   return useQuery<SearchResult[]>({
-    queryKey: ['search-tv-shows', query],
-    queryFn: () => searchTVShows(query),
+    queryKey: ['searchShows', query],
+    queryFn: async () => {
+      if (!query || query.trim().length === 0) return [];
+      
+      const url = `${TMDB_BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1`;
+      
+      const data = await handleTMDBRequest<{ results: any[] }>(
+        url,
+        'Failed to search shows'
+      );
+      
+      if (!data || !data.results) return [];
+      
+      return data.results.map((item: any) => ({
+        id: item.id,
+        name: item.name || 'Unknown',
+        overview: item.overview || '',
+        poster_path: item.poster_path,
+        first_air_date: item.first_air_date || null,
+      }));
+    },
     enabled: query.trim().length > 0,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Helper function to get TMDB image URL
-export function getImageUrl(path: string | null, size: 'w200' | 'w300' | 'w500' | 'w780' | 'original' = 'w500'): string {
-  if (!path) return '/assets/generated/film-reel-transparent.dim_64x64.png';
+export function getImageUrl(path: string | null, size: 'w500' | 'original' = 'w500'): string {
+  if (!path) return '/placeholder-poster.jpg';
   return `${TMDB_IMAGE_BASE}/${size}${path}`;
 }

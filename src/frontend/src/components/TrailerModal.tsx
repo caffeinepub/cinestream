@@ -18,9 +18,8 @@ function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
 
   // Always fetch trailer when modal is open and media is available
   const { data: trailerResult, isLoading, refetch, isFetching } = useTrailer(
-    media?.id || null,
-    media?.media_type || null,
-    isOpen
+    media?.id,
+    media?.media_type
   );
 
   // Log modal lifecycle in development
@@ -165,7 +164,7 @@ function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
           {!showLoading && isNoTrailer && (
             <div className="aspect-video rounded-xl overflow-hidden relative">
               <img
-                src={getImageUrl(media.backdrop_path || media.poster_path, 'w780')}
+                src={getImageUrl(media.backdrop_path || media.poster_path, 'original')}
                 alt={title}
                 className="w-full h-full object-cover"
               />
@@ -183,7 +182,7 @@ function TrailerModal({ media, isOpen, onClose }: TrailerModalProps) {
           {!showLoading && isError && (
             <div className="aspect-video rounded-xl overflow-hidden relative">
               <img
-                src={getImageUrl(media.backdrop_path || media.poster_path, 'w780')}
+                src={getImageUrl(media.backdrop_path || media.poster_path, 'original')}
                 alt={title}
                 className="w-full h-full object-cover"
               />
