@@ -1,74 +1,66 @@
 {
   "kind": "build_request",
-  "title": "Deduplicate Netflix and Featured sections and keep section theming consistent",
-  "projectName": "CineStream",
-  "priority": "normal",
+  "title": "Rollback deployment to version 42",
+  "projectName": "Bree's Favorites",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-20",
-      "text": "Ensure the Netflix Top 10 section never renders duplicate media items; deduplicate by the stable key `${media_type}-${id}` before selecting the Top 10, and if duplicates exist in the source list, backfill with the next unique items so the section still shows up to 10 unique entries when available.",
-      "target": "frontend",
+      "id": "REQ-28",
+      "text": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "please do not include duplicates found in netflix section."
+          "go back to version 42"
         ]
       },
       "acceptanceCriteria": [
-        "When the underlying trending dataset contains repeated items with the same `${media_type}-${id}`, Netflix Top 10 renders each such item at most once.",
-        "If at least 10 unique items exist in the input list, the Netflix Top 10 section displays exactly 10 items after deduplication.",
-        "No React key warnings occur in the console for Netflix Top 10 renders."
+        "The repository state matches version 42 for both frontend and backend sources (no post-v42 changes remain).",
+        "A fresh build succeeds using the reverted version 42 codebase without internal build/deploy errors.",
+        "Deployed canisters and frontend assets correspond to version 42 behavior (no UI/functionality from versions >42 appears)."
       ]
     },
     {
-      "id": "REQ-21",
-      "text": "Remove duplicates across sections by filtering the Featured section so it does not include any media item that appears in the Trending section (ContentGrid), using the stable key `${media_type}-${id}`; if removals reduce the Featured list, backfill with additional unique featured candidates so Featured still shows its intended number of items whenever enough unique items exist.",
-      "target": "frontend",
+      "id": "REQ-29",
+      "text": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (so repeated deploy attempts do not accidentally redeploy a newer version).",
+      "target": "unknown",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "also remove duplicates in featured section found in trending section."
+          "go back to version 42"
         ]
       },
       "acceptanceCriteria": [
-        "If an item is present in Trending (ContentGrid), it does not appear in Featured.",
-        "Featured maintains a consistent item count (e.g., 12) when enough unique featured candidates exist after excluding Trending items.",
-        "The filtering logic matches by `${media_type}-${id}` (so movie and TV items with the same numeric id are treated as distinct)."
-      ]
-    },
-    {
-      "id": "REQ-22",
-      "text": "Ensure each homepage category/section (Featured, Netflix Top 10, Trending) continues to follow the existing site theme after deduplication changes, preserving consistent typography, spacing, glassmorphic styling, and section header treatments so the sections still look visually cohesive.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "ensure each category follows the theme."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Featured, Netflix Top 10, and Trending sections keep consistent header styling (font weight, color, and theme treatments) and do not visually regress after the deduplication changes.",
-        "Card styling remains consistent across sections (no unexpected background/contrast changes introduced by the deduplication work)."
+        "Re-running the deploy process repeatedly results in the same version 42 artifact outputs and deployed behavior.",
+        "There is a clear, single source of truth for the deployed version (e.g., pinning to the version 42 revision/tag) used by the build/deploy steps."
       ]
     }
   ],
   "constraints": [
-    "Frontend files under `frontend/src/components/ui` must not be modified directly; compose them instead.",
-    "Do not edit any paths listed in `frontend.immutablePaths` in SYSTEM_CONTEXT."
+    "Respect the existing single-actor Motoko backend architecture (all Motoko logic remains in backend/main.mo).",
+    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Do not change TMDB query semantics (sorting/time-window) beyond what is necessary to deduplicate rendered results.",
-    "Do not add new homepage sections or new recommendation logic beyond removing duplicates across the specified sections.",
-    "Do not modify backend storage schemas or Motoko canister APIs for this change."
+    "Do not implement new features beyond restoring version 42.",
+    "Do not perform unrelated refactors or UI redesigns as part of the rollback."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

@@ -1,19 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import Header from './components/Header';
-import TrackedShows from './components/TrackedShows';
-import FeaturedRow from './components/FeaturedRow';
-import NetflixTop10 from './components/NetflixTop10';
-import ContentGrid from './components/ContentGrid';
-import TrailerModal from './components/TrailerModal';
 import Footer from './components/Footer';
 import ProfileSetupDialog from './components/ProfileSetupDialog';
-import ApiHealthBanner from './components/ApiHealthBanner';
 import { Toaster } from './components/ui/sonner';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useTMDBHealth } from './hooks/useQueries';
-import { devLog } from './lib/devDiagnostics';
+import { useGetCallerUserProfile } from './hooks/useQueries';
 
 export interface MediaItem {
   id: number;
@@ -31,18 +24,14 @@ export interface MediaItem {
 }
 
 function AppContent() {
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { identity, isInitializing } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-  const { data: apiHealth } = useTMDBHealth();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
-  // Apply query defaults at runtime to the main QueryClient
+  // Apply query defaults at runtime
   useEffect(() => {
     queryClient.setDefaultOptions({
       queries: {
@@ -52,72 +41,18 @@ function AppContent() {
     });
   }, [queryClient]);
 
-  // Handle media selection with immediate modal open
-  const handleMediaClick = useCallback((media: MediaItem) => {
-    // Cancel any pending close timeout to prevent race conditions
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-
-    devLog.mediaSelection('Media clicked', {
-      mediaId: media.id,
-      mediaType: media.media_type,
-      isOpen: true,
-    });
-
-    // Set media and open dialog atomically
-    setSelectedMedia(media);
-    setIsDialogOpen(true);
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    devLog.mediaSelection('Modal closing', {
-      mediaId: selectedMedia?.id,
-      mediaType: selectedMedia?.media_type,
-      isOpen: false,
-    });
-
-    // Close dialog immediately
-    setIsDialogOpen(false);
-
-    // Clear any existing timeout
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-    }
-
-    // Delay clearing media to allow dialog close animation
-    closeTimeoutRef.current = setTimeout(() => {
-      setSelectedMedia(null);
-      closeTimeoutRef.current = null;
-    }, 200);
-  }, [selectedMedia]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current);
-      }
-    };
-  }, []);
-
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]">
       <Header />
-      {apiHealth && !apiHealth.isHealthy && <ApiHealthBanner status={apiHealth} />}
-      {!isInitializing && isAuthenticated && <TrackedShows />}
-      <main className="flex-1">
-        <FeaturedRow onMediaClick={handleMediaClick} />
-        <NetflixTop10 onMediaClick={handleMediaClick} />
-        <ContentGrid onMediaClick={handleMediaClick} />
+      <main className="flex-1 flex items-center justify-center px-6">
+        <div className="text-center space-y-4 max-w-2xl">
+          <h2 className="text-4xl font-bold text-white">No Content Available</h2>
+          <p className="text-lg text-white/70">
+            No trending content is available at the moment. Please check back later.
+          </p>
+        </div>
       </main>
       <Footer />
-      <TrailerModal
-        media={selectedMedia}
-        isOpen={isDialogOpen}
-        onClose={handleCloseModal}
-      />
       {showProfileSetup && <ProfileSetupDialog />}
       <Toaster />
     </div>

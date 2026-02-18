@@ -1,73 +1,92 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T00:12:15.444Z",
+  "generatedAt": "2026-02-18T01:21:10.528Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-20",
-        "summary": "Ensure the Netflix Top 10 section never renders duplicate media items; deduplicate by the stable key `${media_type}-${id}` before selecting the Top 10, and if duplicates exist in the source list, backfill with the next unique items so the section still shows up to 10 unique entries when available.",
+        "id": "REQ-28",
+        "summary": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/lib/mediaKeys.ts",
-          "frontend/src/components/NetflixTop10.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/Footer.tsx",
+          "frontend/src/components/TrailerModal.tsx",
+          "frontend/src/components/TrackedShows.tsx",
+          "frontend/src/components/ContentGrid.tsx",
+          "frontend/src/components/FeaturedRow.tsx",
+          "frontend/src/components/NetflixTop10.tsx",
+          "frontend/src/components/ApiHealthBanner.tsx",
+          "frontend/index.html"
         ],
         "matchedFiles": [
-          "frontend/src/lib/mediaKeys.ts",
-          "frontend/src/components/NetflixTop10.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/Footer.tsx",
+          "frontend/src/components/TrailerModal.tsx",
+          "frontend/src/components/TrackedShows.tsx",
+          "frontend/src/components/ContentGrid.tsx",
+          "frontend/src/components/FeaturedRow.tsx",
+          "frontend/src/components/NetflixTop10.tsx",
+          "frontend/src/components/ApiHealthBanner.tsx"
         ]
       },
       {
-        "id": "REQ-21",
-        "summary": "Remove duplicates across sections by filtering the Featured section so it does not include any media item that appears in the Trending section (ContentGrid), using the stable key `${media_type}-${id}`; if removals reduce the Featured list, backfill with additional unique featured candidates so Featured still shows its intended number of items whenever enough unique items exist.",
+        "id": "REQ-29",
+        "summary": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (so repeated deploy attempts do not accidentally redeploy a newer version).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/FeaturedRow.tsx"
+          "frontend/.env.example",
+          "frontend/src/vite-env.d.ts",
+          "frontend/src/lib/versionGuard.ts",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/FeaturedRow.tsx"
-        ]
-      },
-      {
-        "id": "REQ-22",
-        "summary": "Ensure each homepage category/section (Featured, Netflix Top 10, Trending) continues to follow the existing site theme after deduplication changes, preserving consistent typography, spacing, glassmorphic styling, and section header treatments so the sections still look visually cohesive.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/lib/sectionTheme.ts",
-          "frontend/src/components/NetflixTop10.tsx",
-          "frontend/src/components/FeaturedRow.tsx",
-          "frontend/src/components/ContentGrid.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/lib/sectionTheme.ts",
-          "frontend/src/components/NetflixTop10.tsx",
-          "frontend/src/components/FeaturedRow.tsx",
-          "frontend/src/components/ContentGrid.tsx"
+          "frontend/.env.example",
+          "frontend/src/vite-env.d.ts",
+          "frontend/src/lib/versionGuard.ts",
+          "frontend/src/App.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/.env.example",
+    "frontend/src/App.tsx",
     "frontend/src/components/AddShowDialog.tsx",
+    "frontend/src/components/ApiHealthBanner.tsx",
     "frontend/src/components/ContentGrid.tsx",
     "frontend/src/components/FeaturedRow.tsx",
+    "frontend/src/components/FilterBar.tsx",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/Hero.tsx",
+    "frontend/src/components/MediaCard.tsx",
     "frontend/src/components/NetflixTop10.tsx",
+    "frontend/src/components/ProfileSetupDialog.tsx",
+    "frontend/src/components/TrackedShows.tsx",
     "frontend/src/components/TrailerModal.tsx",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "frontend/src/lib/devDiagnostics.ts",
     "frontend/src/lib/mediaKeys.ts",
     "frontend/src/lib/sectionTheme.ts",
+    "frontend/src/lib/versionGuard.ts",
+    "frontend/src/vite-env.d.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

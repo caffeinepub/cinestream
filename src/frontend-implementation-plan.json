@@ -1,77 +1,101 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "CineStream homepage deduplication and section theme consistency",
+  "title": "Bree's Favorites — Frontend rollback to version 42 (deterministic deploy guard)",
   "requirements": [
     {
-      "id": "REQ-20",
-      "summary": "Deduplicate Netflix Top 10 items by stable key before selecting the Top 10, backfilling with next unique items to show up to 10 unique entries.",
+      "id": "REQ-28",
+      "summary": "Revert all frontend code and assets to match version 42, removing any post-v42 UI/behavior changes.",
       "acceptanceCriteria": [
-        "When the underlying trending dataset contains repeated items with the same `${media_type}-${id}`, Netflix Top 10 renders each such item at most once.",
-        "If at least 10 unique items exist in the input list, the Netflix Top 10 section displays exactly 10 items after deduplication.",
-        "No React key warnings occur in the console for Netflix Top 10 renders."
+        "The repository state matches version 42 for both frontend and backend sources (no post-v42 changes remain).",
+        "A fresh build succeeds using the reverted version 42 codebase without internal build/deploy errors.",
+        "Deployed canisters and frontend assets correspond to version 42 behavior (no UI/functionality from versions >42 appears)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/mediaKeys.ts",
-          "operation": "create",
-          "description": "Add stable key helper(s) (e.g., build `${media_type}-${id}`) and reusable utilities to select the first N unique MediaItem entries while preserving order for backfilling behavior."
-        },
-        {
-          "path": "frontend/src/components/NetflixTop10.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Use the stable key helper and unique-selection utility to deduplicate the trending source list before choosing the Top 10; ensure mapping uses the stable key for React keys and still renders up to 10 unique entries when available, without changing existing section markup/styling."
-        }
-      ]
-    },
-    {
-      "id": "REQ-21",
-      "summary": "Filter Featured to exclude any item present in Trending (ContentGrid) by stable key, and backfill from additional featured candidates to maintain the intended Featured item count when possible.",
-      "acceptanceCriteria": [
-        "If an item is present in Trending (ContentGrid), it does not appear in Featured.",
-        "Featured maintains a consistent item count (e.g., 12) when enough unique featured candidates exist after excluding Trending items.",
-        "The filtering logic matches by `${media_type}-${id}` (so movie and TV items with the same numeric id are treated as distinct)."
-      ],
-      "file_operations": [
+          "description": "Replace current implementation with the exact version 42 App.tsx content/behavior (undo any post-v42 UI logic changes) while keeping immutable paths untouched."
+        },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Adjust featured content fetching to provide enough featured candidates for UI-side filtering/backfilling (e.g., return a larger sorted candidate list rather than slicing to 12 in the fetch layer), without changing TMDB query semantics beyond supporting deduplicated rendering."
+          "description": "Replace current implementation with the exact version 42 useQueries.ts content/behavior (undo any post-v42 TMDB/query logic changes) while keeping immutable paths untouched."
         },
         {
-          "path": "frontend/src/components/FeaturedRow.tsx",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Use `useTrendingContent()` to build a set of stable keys currently shown in Trending, then filter featured candidates to exclude those keys; backfill by continuing through the featured candidate list until the intended Featured count is reached (when enough unique items exist), using the shared stable key helper for comparisons and React keys."
-        }
-      ]
-    },
-    {
-      "id": "REQ-22",
-      "summary": "Preserve cohesive homepage theming (typography, spacing, glassmorphic styling, and header treatments) for Featured, Netflix Top 10, and Trending after deduplication-related refactors.",
-      "acceptanceCriteria": [
-        "Featured, Netflix Top 10, and Trending sections keep consistent header styling (font weight, color, and theme treatments) and do not visually regress after the deduplication changes.",
-        "Card styling remains consistent across sections (no unexpected background/contrast changes introduced by the deduplication work)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/lib/sectionTheme.ts",
-          "operation": "create",
-          "description": "Add shared constants/helpers for section header className strings and section spacing wrappers (reusing the exact existing class values) to reduce accidental styling drift during dedup-related edits."
+          "description": "Replace current implementation with the exact version 42 Header.tsx content/behavior (undo any post-v42 authentication/header UI changes) while keeping immutable paths untouched."
         },
         {
-          "path": "frontend/src/components/NetflixTop10.tsx",
+          "path": "frontend/src/components/Footer.tsx",
           "operation": "modify",
-          "description": "Refactor to reference shared section theme constants for header/wrapper styling while keeping the rendered class values identical; ensure dedup logic does not alter glassmorphic visuals."
+          "description": "Replace current implementation with the exact version 42 Footer.tsx content/behavior (undo any post-v42 footer UI changes) while keeping immutable paths untouched."
         },
         {
-          "path": "frontend/src/components/FeaturedRow.tsx",
+          "path": "frontend/src/components/TrailerModal.tsx",
           "operation": "modify",
-          "description": "Refactor to reference shared section theme constants for header/wrapper styling while keeping the rendered class values identical; ensure filtering/backfill logic does not change card styling."
+          "description": "Replace current implementation with the exact version 42 TrailerModal.tsx content/behavior (undo any post-v42 trailer modal logic/UI changes) while keeping immutable paths untouched."
+        },
+        {
+          "path": "frontend/src/components/TrackedShows.tsx",
+          "operation": "modify",
+          "description": "Replace current implementation with the exact version 42 TrackedShows.tsx content/behavior (undo any post-v42 tracked-shows UI/logic changes) while keeping immutable paths untouched."
         },
         {
           "path": "frontend/src/components/ContentGrid.tsx",
           "operation": "modify",
-          "description": "Refactor to reference shared section theme constants for the Trending header/wrapper styling while keeping the rendered class values identical; do not modify any `frontend/src/components/ui` files—compose existing styles only."
+          "description": "Replace current implementation with the exact version 42 ContentGrid.tsx content/behavior (undo any post-v42 grid UI/logic changes) while keeping immutable paths untouched."
+        },
+        {
+          "path": "frontend/src/components/FeaturedRow.tsx",
+          "operation": "modify",
+          "description": "Replace current implementation with the exact version 42 FeaturedRow.tsx content/behavior (undo any post-v42 featured-row UI/logic changes) while keeping immutable paths untouched."
+        },
+        {
+          "path": "frontend/src/components/NetflixTop10.tsx",
+          "operation": "modify",
+          "description": "Replace current implementation with the exact version 42 NetflixTop10.tsx content/behavior (undo any post-v42 top-10 UI/logic changes) while keeping immutable paths untouched."
+        },
+        {
+          "path": "frontend/src/components/ApiHealthBanner.tsx",
+          "operation": "modify",
+          "description": "Replace current implementation with the exact version 42 ApiHealthBanner.tsx content/behavior (undo any post-v42 API health UX changes) while keeping immutable paths untouched."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Ensure the HTML metadata/title and root wiring match the exact version 42 state (no post-v42 changes remain)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "summary": "Add a deterministic, single-source-of-truth frontend version pin/guard so builds/deploys consistently produce version 42 behavior.",
+      "acceptanceCriteria": [
+        "Re-running the deploy process repeatedly results in the same version 42 artifact outputs and deployed behavior.",
+        "There is a clear, single source of truth for the deployed version (e.g., pinning to the version 42 revision/tag) used by the build/deploy steps."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/.env.example",
+          "operation": "modify",
+          "description": "Add a clearly documented, pinned version variable (e.g., VITE_APP_VERSION=42) to serve as the frontend build/deploy single source of truth for version 42 selection."
+        },
+        {
+          "path": "frontend/src/vite-env.d.ts",
+          "operation": "modify",
+          "description": "Extend ImportMetaEnv typing to include the pinned version variable used by the frontend build (e.g., VITE_APP_VERSION) so version pinning is explicit and type-safe."
+        },
+        {
+          "path": "frontend/src/lib/versionGuard.ts",
+          "operation": "create",
+          "description": "Create a small version-guard utility that reads the pinned version variable and validates it equals \"42\" for production builds, providing a deterministic fail-fast signal when a newer version is accidentally deployed."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the version guard into app startup (without modifying immutable files) so a mismatched build/deploy version is detected deterministically and does not silently run a non-v42 frontend."
         }
       ]
     }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 45,
+  "projectStateVersion": 51,
   "summary": "CineStream is a React (Vite) + Motoko (Internet Computer) web app for discovering trending movies/TV shows from TMDB, featuring a Netflix-inspired/glassmorphic UI, trailer playback, and auto-refreshing trending content (target: every 30 minutes). Logged-in users (Internet Identity) can track TV shows with per-user profiles and a new-episode indicator based on last visit. The frontend uses TanStack React Query for caching/refresh and resilient TMDB fetching, while the backend canister provides access-controlled storage for user profiles, tracked show IDs, and last-visit timestamps (plus optional admin role management). The repo also includes generic IC HTTP outcall helpers and a Caffeine.ai blob-storage mixin/utility for canister storage operations.",
   "architectural_notes": [
     "Frontend: React + Vite + TypeScript with TailwindCSS styling and shadcn/ui-style components (Dialog, Button, Input, etc.).",
@@ -412,6 +412,62 @@
         "REQ-22"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-header-banner-title-text-in-frontend-src-components-header-tsx-from-cinestream-to-bree-s-favorites",
+      "title": "Update the header/banner title text in `frontend/src/components/Header.tsx` from \"CineStream\" to \"Bree's Favorites\".",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-trending-content-query-so-the-homepage-does-not-end-up-with-an-empty-combined-list-when-tmdb-requests-fail-rate-limit-timeout-network-invalid-key-distinguish-between-a-genuine-empty-results-and-b-failed-tmdb-requests-and-ensure-failed-requests-surface-as-a-react-query-error-state-rather-than-silently-returning-an-empty-array",
+      "title": "Fix the Trending content query so the homepage does not end up with an empty combined list when TMDB requests fail (rate limit/timeout/network/invalid key). Distinguish between (a) genuine empty results and (b) failed TMDB requests, and ensure failed requests surface as a React Query error state rather than silently returning an empty array.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-robust-fallback-request-path-for-trending-content-so-the-homepage-reliably-loads-items-even-when-the-discover-endpoints-with-past-year-filters-return-empty-use-a-secondary-tmdb-request-strategy-e-g-a-tmdb-trending-endpoint-or-a-less-restrictive-discover-request-and-only-fall-back-when-the-primary-strategy-returns-an-empty-set-while-tmdb-is-otherwise-reachable",
+      "title": "Add a robust fallback request path for Trending content so the homepage reliably loads items even when the Discover endpoints (with past-year filters) return empty. Use a secondary TMDB request strategy (e.g., a TMDB Trending endpoint or a less restrictive Discover request) and only fall back when the primary strategy returns an empty set while TMDB is otherwise reachable.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-trending-section-empty-state-ux-in-frontend-src-components-contentgrid-tsx-so-it-provides-an-actionable-recovery-path-a-try-again-action-that-re-fetches-trending-content-via-react-query-and-avoid-showing-the-generic-no-content-available-message-when-tmdb-health-is-unhealthy",
+      "title": "Update the Trending section empty-state UX in `frontend/src/components/ContentGrid.tsx` so it provides an actionable recovery path (a 'Try Again' action) that re-fetches Trending content via React Query, and avoid showing the generic 'No Content Available' message when TMDB health is unhealthy.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-tmdb-api-health-messaging-and-configuration-guidance-are-consistent-with-the-new-trending-behavior-when-the-api-key-is-invalid-missing-and-content-cannot-be-loaded-show-clear-guidance-in-the-existing-apihealthbanner-flow-about-configuring-vite-tmdb-api-key-as-documented-in-frontend-env-example",
+      "title": "Ensure the TMDB API health messaging and configuration guidance are consistent with the new Trending behavior: when the API key is invalid/missing and content cannot be loaded, show clear guidance in the existing `ApiHealthBanner` flow about configuring `VITE_TMDB_API_KEY` (as documented in `frontend/.env.example`).",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rollback-the-application-codebase-and-deployment-configuration-to-version-42-reverting-any-code-changes-introduced-after-version-42-across-both-the-frontend-and-backend",
+      "title": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-deployment-pipeline-build-scripts-select-and-deploy-version-42-deterministically-so-repeated-deploy-attempts-do-not-accidentally-redeploy-a-newer-version",
+      "title": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (so repeated deploy attempts do not accidentally redeploy a newer version).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -456,6 +512,24 @@
     {
       "id": "AR-11",
       "summary": "Deduplicate homepage content across sections: remove duplicates within the Netflix section, and remove items from Featured that also appear in Trending; ensure each category/section remains theme-consistent after deduping.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Update the homepage banner title text (currently 'CineStream') to 'Bree's Favorites' (UI label change).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Fix the trending section so it reliably loads content (address TMDB empty results by improving error handling and/or adding fallback requests/adjusting filters or using the TMDB Trending endpoint).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Rollback/redeploy the app to version 42 (revert from current version after deployment/internal build errors).",
       "reqIds": [],
       "status": "pending"
     }

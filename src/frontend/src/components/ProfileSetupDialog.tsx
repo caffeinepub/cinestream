@@ -21,38 +21,42 @@ export default function ProfileSetupDialog() {
     try {
       await saveProfileMutation.mutateAsync({ name: name.trim() });
       toast.success('Profile created successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save profile:', error);
-      toast.error('Failed to create profile');
+      toast.error(error?.message || 'Failed to create profile');
     }
   };
 
   return (
-    <Dialog open={true}>
-      <DialogContent className="sm:max-w-md glass-panel-strong border-white/30 glass-shadow-xl rounded-2xl" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={true} onOpenChange={() => {}}>
+      <DialogContent 
+        className="sm:max-w-md bg-[#1a1a2e] border-white/20"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
-          <DialogTitle className="text-white text-glass-strong">Welcome to CineStream!</DialogTitle>
-          <DialogDescription className="text-white/80 text-glass">
-            Please enter your name to get started with tracking your favorite shows.
+          <DialogTitle className="text-white">Welcome!</DialogTitle>
+          <DialogDescription className="text-white/70">
+            Please enter your name to get started.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-white text-glass">Your Name</Label>
+            <Label htmlFor="name" className="text-white">Name</Label>
             <Input
               id="name"
-              placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
               autoFocus
               disabled={saveProfileMutation.isPending}
-              className="glass-panel border-white/30 text-white placeholder:text-white/50 backdrop-blur-md"
             />
           </div>
           <Button
             type="submit"
-            className="w-full bg-primary hover:bg-primary/90 text-white glass-shadow-lg glass-glow neon-glow"
-            disabled={saveProfileMutation.isPending || !name.trim()}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            disabled={saveProfileMutation.isPending}
           >
             {saveProfileMutation.isPending ? 'Creating Profile...' : 'Continue'}
           </Button>
@@ -61,4 +65,3 @@ export default function ProfileSetupDialog() {
     </Dialog>
   );
 }
-

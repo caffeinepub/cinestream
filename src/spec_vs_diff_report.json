@@ -1,64 +1,104 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T00:12:15.440Z",
-  "summary": "REQ-20 and REQ-21 appear implemented via new stable media key + dedup/filter utilities and usage in NetflixTop10/FeaturedRow. There is insufficient evidence that REQ-22 (consistent theming across Featured/NetflixTop10/Trending) is fully met, because NetflixTop10’s header styling does not appear to use the shared section header theme tokens that were introduced and used elsewhere.",
+  "generatedAt": "2026-02-18T01:21:10.524Z",
+  "summary": "The diff introduces new frontend and backend functionality (user profiles, access control, UI changes, and a version guard utility) rather than demonstrating a rollback to the version 42 codebase and a deterministic deployment selection pinned to version 42. The changes appear to add post-v42 behavior, which conflicts with the rollback-only request.",
   "missing_requirements": [
     {
-      "id": "REQ-22",
-      "requirement": "Ensure each homepage category/section (Featured, Netflix Top 10, Trending) continues to follow the existing site theme after deduplication changes, preserving consistent typography, spacing, glassmorphic styling, and section header treatments so the sections still look visually cohesive.",
-      "reason": "The diff shows a central theme file (sectionTheme.ts) and usage in ContentGrid/FeaturedRow, but NetflixTop10’s header uses its own hard-coded classes and does not appear to apply the shared header treatment (e.g., netflix-accent-bar / consistent sizing) introduced for other sections, which may break the required cross-section consistency.",
+      "id": "REQ-28",
+      "requirement": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
+      "reason": "The diff shows many substantial modifications and a newly added file, but provides no evidence of reverting to the exact version 42 repository state. Multiple new/changed features suggest the opposite of a rollback-only change set.",
       "evidence": [
-        "frontend/src/lib/sectionTheme.ts",
-        "frontend/src/components/ContentGrid.tsx",
-        "frontend/src/components/FeaturedRow.tsx",
-        "frontend/src/components/NetflixTop10.tsx"
+        "backend/main.mo",
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/components/ProfileSetupDialog.tsx",
+        "frontend/src/lib/versionGuard.ts (added)"
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "requirement": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (single source of truth pinned to version 42 revision/tag).",
+      "reason": "No deployment pipeline/build script changes are shown (e.g., dfx.json, package scripts, CI workflows, or pinning to a tag/revision). The added frontend-only runtime check (VITE_APP_VERSION) does not demonstrate deterministic selection/pinning of version 42 artifacts during build/deploy.",
+      "evidence": [
+        "frontend/src/lib/versionGuard.ts"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "TMDB API connectivity/health-check system with caching and detailed status messaging.",
-      "reason": "Not requested by the BuildRequest; the request was limited to deduplication across sections and preserving theming consistency.",
+      "description": "Backend access control system with roles (guest/user/admin), initialization, role assignment, and admin checks.",
+      "reason": "The BuildRequest explicitly limits scope to restoring version 42 and forbids new features beyond the rollback. These additions are not described as part of rollback requirements.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts"
+        "backend/main.mo"
       ]
     },
     {
-      "description": "Extensive trailer modal refactor with new dev logging, iframe lifecycle handling, and expanded error categorization/retry behavior.",
-      "reason": "Not requested; the BuildRequest does not mention trailer behavior changes.",
+      "description": "Backend user profile storage and APIs (getCallerUserProfile, getUserProfile, saveCallerUserProfile) with authorization checks.",
+      "reason": "User profiles are not requested; they represent new application functionality beyond a rollback to version 42.",
       "evidence": [
-        "frontend/src/components/TrailerModal.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "backend/main.mo"
       ]
     },
     {
-      "description": "Large glassmorphic/typography redesign work across unrelated components (e.g., Header, Footer, MediaCard, TrackedShows, ProfileSetupDialog) and global CSS stacking/iframe rules.",
-      "reason": "Not requested; REQ-22 only asks to preserve existing theming for the specified homepage sections, not to introduce broad new styling changes elsewhere.",
+      "description": "Frontend profile setup flow (ProfileSetupDialog) with toast notifications and mutation to save a user profile.",
+      "reason": "Not requested in REQ-28/REQ-29 and constitutes new UI/functionality beyond restoring version 42.",
       "evidence": [
-        "frontend-file-summaries.txt (Header.tsx, Footer.tsx, MediaCard.tsx, TrackedShows.tsx, ProfileSetupDialog.tsx, index.css)"
+        "frontend/src/components/ProfileSetupDialog.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/App.tsx"
       ]
     },
     {
-      "description": "AddShowDialog behavioral changes (login gating, revised error messaging, and switching search hook usage) beyond deduplication scope.",
-      "reason": "Not requested by the BuildRequest.",
+      "description": "Frontend runtime React Query default options being set at runtime (refetchOnWindowFocus/retry changes).",
+      "reason": "Not requested as part of rollback/deterministic deploy; appears to be an unrelated behavior change.",
       "evidence": [
-        "frontend/src/components/AddShowDialog.tsx",
-        "frontend-file-summaries.txt (AddShowDialog.tsx)"
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "description": "Version guard utility that logs/validates VITE_APP_VERSION at runtime.",
+      "reason": "REQ-29 asks for deterministic deploy selection/pinning in build/deploy scripts; this is a new runtime diagnostic feature and not evidenced as part of deployment pipeline determinism.",
+      "evidence": [
+        "frontend/src/lib/versionGuard.ts"
+      ]
+    },
+    {
+      "description": "Significant UI/content changes including 'No Content Available' landing content and updated header/footer content/branding.",
+      "reason": "The request forbids unrelated UI redesigns and new functionality; these appear to be post-v42 UI changes rather than a rollback proof.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/Footer.tsx"
       ]
     }
   ],
-  "confidence": 0.64,
+  "confidence": 0.78,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/.env.example",
+    "frontend/src/App.tsx",
     "frontend/src/components/AddShowDialog.tsx",
+    "frontend/src/components/ApiHealthBanner.tsx",
     "frontend/src/components/ContentGrid.tsx",
     "frontend/src/components/FeaturedRow.tsx",
+    "frontend/src/components/FilterBar.tsx",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/Hero.tsx",
+    "frontend/src/components/MediaCard.tsx",
     "frontend/src/components/NetflixTop10.tsx",
+    "frontend/src/components/ProfileSetupDialog.tsx",
+    "frontend/src/components/TrackedShows.tsx",
     "frontend/src/components/TrailerModal.tsx",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "frontend/src/lib/devDiagnostics.ts",
     "frontend/src/lib/mediaKeys.ts",
     "frontend/src/lib/sectionTheme.ts",
+    "frontend/src/lib/versionGuard.ts",
+    "frontend/src/vite-env.d.ts",
     "project_state.json"
   ]
 }

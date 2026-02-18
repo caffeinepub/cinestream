@@ -2,32 +2,18 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-netflix-top-10-section-never-renders-duplicate-media-items-deduplicate-by-the-stable-key-media-type-id-before-selecting-the-top-10-and-if-duplicates-exist-in-the-source-list-backfill-with-the-next-unique-items-so-the-section-still-shows-up-to-10-unique-entries-when-available",
-      "featureTitle": "Ensure the Netflix Top 10 section never renders duplicate media items; deduplicate by the stable key `${media_type}-${id}` before selecting the Top 10, and if duplicates exist in the source list, backfill with the next unique items so the section still shows up to 10 unique entries when available.",
+      "featureId": "feature-rollback-the-application-codebase-and-deployment-configuration-to-version-42-reverting-any-code-changes-introduced-after-version-42-across-both-the-frontend-and-backend",
+      "featureTitle": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
       "files": [
-        "frontend/src/components/NetflixTop10.tsx",
-        "frontend/src/lib/mediaKeys.ts"
-      ],
-      "components": [
-        "http-outcalls@3.0.0",
-        "blob-storage@3.0.0",
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-20"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-remove-duplicates-across-sections-by-filtering-the-featured-section-so-it-does-not-include-any-media-item-that-appears-in-the-trending-section-contentgrid-using-the-stable-key-media-type-id-if-removals-reduce-the-featured-list-backfill-with-additional-unique-featured-candidates-so-featured-still-shows-its-intended-number-of-items-whenever-enough-unique-items-exist",
-      "featureTitle": "Remove duplicates across sections by filtering the Featured section so it does not include any media item that appears in the Trending section (ContentGrid), using the stable key `${media_type}-${id}`; if removals reduce the Featured list, backfill with additional unique featured candidates so Featured still shows its intended number of items whenever enough unique items exist.",
-      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/ApiHealthBanner.tsx",
+        "frontend/src/components/ContentGrid.tsx",
         "frontend/src/components/FeaturedRow.tsx",
+        "frontend/src/components/Footer.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/NetflixTop10.tsx",
+        "frontend/src/components/TrackedShows.tsx",
+        "frontend/src/components/TrailerModal.tsx",
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -41,18 +27,18 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-21"
+        "REQ-28"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-each-homepage-category-section-featured-netflix-top-10-trending-continues-to-follow-the-existing-site-theme-after-deduplication-changes-preserving-consistent-typography-spacing-glassmorphic-styling-and-section-header-treatments-so-the-sections-still-look-visually-cohesive",
-      "featureTitle": "Ensure each homepage category/section (Featured, Netflix Top 10, Trending) continues to follow the existing site theme after deduplication changes, preserving consistent typography, spacing, glassmorphic styling, and section header treatments so the sections still look visually cohesive.",
+      "featureId": "feature-ensure-the-deployment-pipeline-build-scripts-select-and-deploy-version-42-deterministically-so-repeated-deploy-attempts-do-not-accidentally-redeploy-a-newer-version",
+      "featureTitle": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (so repeated deploy attempts do not accidentally redeploy a newer version).",
       "files": [
-        "frontend/src/components/ContentGrid.tsx",
-        "frontend/src/components/FeaturedRow.tsx",
-        "frontend/src/components/NetflixTop10.tsx",
-        "frontend/src/lib/sectionTheme.ts"
+        "frontend/.env.example",
+        "frontend/src/App.tsx",
+        "frontend/src/lib/versionGuard.ts",
+        "frontend/src/vite-env.d.ts"
       ],
       "components": [
         "http-outcalls@3.0.0",
@@ -65,7 +51,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-22"
+        "REQ-29"
       ],
       "confidence": "high"
     }
