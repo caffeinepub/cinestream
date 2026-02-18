@@ -1,22 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "CineStream - Remove FeaturedRow overlay scroll buttons",
+  "title": "Clarify Netflix section on homepage (CineStream)",
   "requirements": [
     {
-      "id": "REQ-17",
-      "summary": "Remove left/right overlay scroll buttons from FeaturedRow while preserving native horizontal scrolling and tightening layout spacing.",
+      "id": "REQ-18",
+      "summary": "Render the existing NetflixTop10 section in the homepage main flow and wire it to the shared media click handler.",
       "acceptanceCriteria": [
-        "In `frontend/src/components/FeaturedRow.tsx`, the left and right navigation `<Button>` elements (ChevronLeft/ChevronRight) are no longer rendered.",
-        "The FeaturedRow content remains horizontally scrollable using native scrolling (e.g., touch swipe/trackpad) with `overflow-x-auto` preserved.",
-        "No unused imports or dead code remain in `FeaturedRow.tsx` (e.g., remove `Button`, `ChevronLeft`, `ChevronRight`, and the `scroll` callback if no longer used).",
-        "After removal, the FeaturedRow layout has no empty reserved space that previously accommodated the buttons (adjust any horizontal padding such as `px-12 sm:px-16` as needed so cards align naturally within the container)."
+        "On the homepage, a Netflix-specific section is visible without requiring login.",
+        "The Netflix section is rendered using the existing `frontend/src/components/NetflixTop10.tsx` component and appears in the main `<main>` content flow (alongside Featured and Trending sections).",
+        "Clicking an item inside the Netflix section triggers the same trailer/open behavior as other media sections (i.e., uses the same `onMediaClick` handler wiring as other rows/grids)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/FeaturedRow.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Remove the overlay navigation UI (left/right ghost Buttons and Chevron icons) and the now-unneeded scroll handler/ref logic; keep the row natively horizontally scrollable by preserving `overflow-x-auto` on the scroll container and remove/adjust horizontal padding (e.g., drop `px-12 sm:px-16`) so cards align naturally without reserved button space. Ensure imports are cleaned up and no dead code remains."
+          "description": "Import and render the existing `NetflixTop10` component within the homepage `<main>` flow (near `FeaturedRow` and `ContentGrid`) and pass the shared `handleMediaClick` as `onMediaClick` so trailer/open behavior matches other sections."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Make the Netflix section header explicitly identify Netflix in both loading and loaded states and keep it visually distinct/readable on dark/glass backgrounds.",
+      "acceptanceCriteria": [
+        "The Netflix section header includes clear English text that explicitly names Netflix (for example: “Netflix Top 10” or “Top 10 on Netflix”), not just “Top 10”.",
+        "The Netflix label is present in both loading and loaded states of the Netflix section.",
+        "The Netflix section remains visually distinct from other sections via its header block (e.g., Netflix logo + explicit Netflix text, consistent spacing), without reducing readability on dark/glass backgrounds."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/NetflixTop10.tsx",
+          "operation": "modify",
+          "description": "Update the section header text in both loading and loaded render paths to explicitly include the word \"Netflix\" (e.g., \"Netflix Top 10\" / \"Top 10 on Netflix\"), while retaining the existing logo asset at `frontend/public/assets/generated/netflix-logo-transparent.dim_200x100.png` and ensuring header styling remains distinct and readable on dark/glass backgrounds."
         }
       ]
     }

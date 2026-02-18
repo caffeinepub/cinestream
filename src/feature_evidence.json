@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-left-right-ui-scroll-navigation-buttons-from-the-featuredrow-so-no-overlay-scroll-controls-are-rendered-while-keeping-the-featuredrow-horizontally-scrollable-via-native-input-trackpad-mouse-wheel-touch-swipe",
-      "featureTitle": "Remove the left/right UI scroll navigation buttons from the FeaturedRow so no overlay scroll controls are rendered, while keeping the FeaturedRow horizontally scrollable via native input (trackpad/mouse wheel/touch swipe).",
+      "featureId": "feature-ensure-the-homepage-includes-a-clearly-identifiable-netflix-section-by-rendering-the-existing-netflixtop10-section-in-the-main-homepage-flow-so-users-can-easily-find-the-netflix-related-content",
+      "featureTitle": "Ensure the homepage includes a clearly identifiable Netflix section by rendering the existing `NetflixTop10` section in the main homepage flow (so users can easily find the Netflix-related content).",
       "files": [
-        "frontend/src/components/FeaturedRow.tsx"
+        "frontend/src/App.tsx"
       ],
       "components": [
         "http-outcalls@3.0.0",
@@ -18,7 +18,28 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-17"
+        "REQ-18"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-netflix-section-s-header-labeling-so-it-is-unambiguous-that-the-section-is-netflix-related-e-g-the-title-text-explicitly-includes-the-word-netflix",
+      "featureTitle": "Update the Netflix section’s header/labeling so it is unambiguous that the section is Netflix-related (e.g., the title text explicitly includes the word “Netflix”).",
+      "files": [
+        "frontend/src/components/NetflixTop10.tsx"
+      ],
+      "components": [
+        "http-outcalls@3.0.0",
+        "blob-storage@3.0.0",
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-19"
       ],
       "confidence": "high"
     }

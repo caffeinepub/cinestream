@@ -4,6 +4,7 @@ import { ThemeProvider } from 'next-themes';
 import Header from './components/Header';
 import TrackedShows from './components/TrackedShows';
 import FeaturedRow from './components/FeaturedRow';
+import NetflixTop10 from './components/NetflixTop10';
 import ContentGrid from './components/ContentGrid';
 import TrailerModal from './components/TrailerModal';
 import Footer from './components/Footer';
@@ -108,6 +109,7 @@ function AppContent() {
       {!isInitializing && isAuthenticated && <TrackedShows />}
       <main className="flex-1">
         <FeaturedRow onMediaClick={handleMediaClick} />
+        <NetflixTop10 onMediaClick={handleMediaClick} />
         <ContentGrid onMediaClick={handleMediaClick} />
       </main>
       <Footer />

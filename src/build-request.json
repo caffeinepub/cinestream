@@ -1,36 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Remove UI scroll/navigation buttons from Featured row",
+  "title": "Clarify Netflix section on homepage",
   "projectName": "CineStream",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-17",
-      "text": "Remove the left/right UI scroll navigation buttons from the FeaturedRow so no overlay scroll controls are rendered, while keeping the FeaturedRow horizontally scrollable via native input (trackpad/mouse wheel/touch swipe).",
+      "id": "REQ-18",
+      "text": "Ensure the homepage includes a clearly identifiable Netflix section by rendering the existing `NetflixTop10` section in the main homepage flow (so users can easily find the Netflix-related content).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-4"
+          "recent-messages"
         ],
         "quotes": [
-          "remove the ui scroll buttons"
+          "make it clear which is the netflix section"
         ]
       },
       "acceptanceCriteria": [
-        "In `frontend/src/components/FeaturedRow.tsx`, the left and right navigation `<Button>` elements (ChevronLeft/ChevronRight) are no longer rendered.",
-        "The FeaturedRow content remains horizontally scrollable using native scrolling (e.g., touch swipe/trackpad) with `overflow-x-auto` preserved.",
-        "No unused imports or dead code remain in `FeaturedRow.tsx` (e.g., remove `Button`, `ChevronLeft`, `ChevronRight`, and the `scroll` callback if no longer used).",
-        "After removal, the FeaturedRow layout has no empty reserved space that previously accommodated the buttons (adjust any horizontal padding such as `px-12 sm:px-16` as needed so cards align naturally within the container)."
+        "On the homepage, a Netflix-specific section is visible without requiring login.",
+        "The Netflix section is rendered using the existing `frontend/src/components/NetflixTop10.tsx` component and appears in the main `<main>` content flow (alongside Featured and Trending sections).",
+        "Clicking an item inside the Netflix section triggers the same trailer/open behavior as other media sections (i.e., uses the same `onMediaClick` handler wiring as other rows/grids)."
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Update the Netflix section’s header/labeling so it is unambiguous that the section is Netflix-related (e.g., the title text explicitly includes the word “Netflix”).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "make it clear which is the netflix section"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Netflix section header includes clear English text that explicitly names Netflix (for example: “Netflix Top 10” or “Top 10 on Netflix”), not just “Top 10”.",
+        "The Netflix label is present in both loading and loaded states of the Netflix section.",
+        "The Netflix section remains visually distinct from other sections via its header block (e.g., Netflix logo + explicit Netflix text, consistent spacing), without reducing readability on dark/glass backgrounds."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under `frontend/src/components/ui` (Shadcn components are read-only).",
-    "Keep changes scoped to removing UI scroll/navigation buttons; do not alter unrelated trailer playback behavior or backend APIs."
+    "Use English for all user-facing text.",
+    "Frontend immutable paths must not be modified: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and anything under `frontend/src/components/ui`.",
+    "Keep changes scoped to clarifying which homepage section is the Netflix section; do not introduce new auth providers or external services."
   ],
   "nonGoals": [
-    "Adding replacement navigation UI (e.g., pagination dots, new buttons, keyboard shortcuts) unless required to preserve native scrolling.",
-    "Changing the FeaturedRow data fetching behavior or curated content logic."
+    "Do not change TMDB fetching logic, ranking logic, or add new data sources for Netflix.",
+    "Do not redesign the entire homepage layout beyond what is necessary to make the Netflix section clearly identifiable."
   ],
   "imageRequirements": {
     "required": [],

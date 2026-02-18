@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 41,
+  "projectStateVersion": 43,
   "summary": "CineStream is a React (Vite) + Motoko (Internet Computer) web app for discovering trending movies/TV shows from TMDB, featuring a Netflix-inspired/glassmorphic UI, trailer playback, and auto-refreshing trending content (target: every 30 minutes). Logged-in users (Internet Identity) can track TV shows with per-user profiles and a new-episode indicator based on last visit. The frontend uses TanStack React Query for caching/refresh and resilient TMDB fetching, while the backend canister provides access-controlled storage for user profiles, tracked show IDs, and last-visit timestamps (plus optional admin role management). The repo also includes generic IC HTTP outcall helpers and a Caffeine.ai blob-storage mixin/utility for canister storage operations.",
   "architectural_notes": [
     "Frontend: React + Vite + TypeScript with TailwindCSS styling and shadcn/ui-style components (Dialog, Button, Input, etc.).",
@@ -26,7 +26,7 @@
     "Repeated production deployment failures persisted across multiple versions; root cause may include build-time config/env var handling, empty/stub component imports, duplicate providers, or canister init traps and needs systematic stabilization.",
     "Page performance: noticeable lag/sluggishness during use (user-reported)."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "generatedImages": [
     {
       "filename": "frontend/public/assets/generated/film-reel-transparent.dim_64x64.png",
@@ -372,6 +372,22 @@
         "REQ-17"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-the-homepage-includes-a-clearly-identifiable-netflix-section-by-rendering-the-existing-netflixtop10-section-in-the-main-homepage-flow-so-users-can-easily-find-the-netflix-related-content",
+      "title": "Ensure the homepage includes a clearly identifiable Netflix section by rendering the existing `NetflixTop10` section in the main homepage flow (so users can easily find the Netflix-related content).",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-netflix-section-s-header-labeling-so-it-is-unambiguous-that-the-section-is-netflix-related-e-g-the-title-text-explicitly-includes-the-word-netflix",
+      "title": "Update the Netflix section’s header/labeling so it is unambiguous that the section is Netflix-related (e.g., the title text explicitly includes the word “Netflix”).",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -404,6 +420,12 @@
     {
       "id": "AR-9",
       "summary": "Remove the UI scroll/navigation buttons (e.g., slider left/right controls) from the interface.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Update the UI to clearly label/indicate which homepage section corresponds to Netflix (e.g., the 'Netflix Top 10' section) so users can easily identify it.",
       "reqIds": [],
       "status": "pending"
     }
