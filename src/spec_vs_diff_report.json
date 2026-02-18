@@ -1,104 +1,16 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T01:21:10.524Z",
-  "summary": "The diff introduces new frontend and backend functionality (user profiles, access control, UI changes, and a version guard utility) rather than demonstrating a rollback to the version 42 codebase and a deterministic deployment selection pinned to version 42. The changes appear to add post-v42 behavior, which conflicts with the rollback-only request.",
-  "missing_requirements": [
-    {
-      "id": "REQ-28",
-      "requirement": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
-      "reason": "The diff shows many substantial modifications and a newly added file, but provides no evidence of reverting to the exact version 42 repository state. Multiple new/changed features suggest the opposite of a rollback-only change set.",
-      "evidence": [
-        "backend/main.mo",
-        "frontend/src/App.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/components/ProfileSetupDialog.tsx",
-        "frontend/src/lib/versionGuard.ts (added)"
-      ]
-    },
-    {
-      "id": "REQ-29",
-      "requirement": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (single source of truth pinned to version 42 revision/tag).",
-      "reason": "No deployment pipeline/build script changes are shown (e.g., dfx.json, package scripts, CI workflows, or pinning to a tag/revision). The added frontend-only runtime check (VITE_APP_VERSION) does not demonstrate deterministic selection/pinning of version 42 artifacts during build/deploy.",
-      "evidence": [
-        "frontend/src/lib/versionGuard.ts"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "Backend access control system with roles (guest/user/admin), initialization, role assignment, and admin checks.",
-      "reason": "The BuildRequest explicitly limits scope to restoring version 42 and forbids new features beyond the rollback. These additions are not described as part of rollback requirements.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Backend user profile storage and APIs (getCallerUserProfile, getUserProfile, saveCallerUserProfile) with authorization checks.",
-      "reason": "User profiles are not requested; they represent new application functionality beyond a rollback to version 42.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Frontend profile setup flow (ProfileSetupDialog) with toast notifications and mutation to save a user profile.",
-      "reason": "Not requested in REQ-28/REQ-29 and constitutes new UI/functionality beyond restoring version 42.",
-      "evidence": [
-        "frontend/src/components/ProfileSetupDialog.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "Frontend runtime React Query default options being set at runtime (refetchOnWindowFocus/retry changes).",
-      "reason": "Not requested as part of rollback/deterministic deploy; appears to be an unrelated behavior change.",
-      "evidence": [
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "Version guard utility that logs/validates VITE_APP_VERSION at runtime.",
-      "reason": "REQ-29 asks for deterministic deploy selection/pinning in build/deploy scripts; this is a new runtime diagnostic feature and not evidenced as part of deployment pipeline determinism.",
-      "evidence": [
-        "frontend/src/lib/versionGuard.ts"
-      ]
-    },
-    {
-      "description": "Significant UI/content changes including 'No Content Available' landing content and updated header/footer content/branding.",
-      "reason": "The request forbids unrelated UI redesigns and new functionality; these appear to be post-v42 UI changes rather than a rollback proof.",
-      "evidence": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/Footer.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.78,
+  "generatedAt": "2026-02-18T17:57:46.900Z",
+  "summary": "The diff implements all core requirements for restoring trailer playback functionality. TrailerModal.tsx was restored with a functional component using Radix Dialog, proper z-index configuration, and all required UI states (loading, error with retry, no trailer available). MediaCard.tsx was updated with a Watch Trailer button that triggers the modal with correct media type and ID. A useGetTrailer hook was added to useQueries.ts that fetches trailer data from TMDB video endpoints with timeout handling and error management. The implementation appears complete and matches all specified requirements.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.92,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/.env.example",
-    "frontend/src/App.tsx",
-    "frontend/src/components/AddShowDialog.tsx",
-    "frontend/src/components/ApiHealthBanner.tsx",
-    "frontend/src/components/ContentGrid.tsx",
-    "frontend/src/components/FeaturedRow.tsx",
-    "frontend/src/components/FilterBar.tsx",
-    "frontend/src/components/Footer.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/Hero.tsx",
     "frontend/src/components/MediaCard.tsx",
-    "frontend/src/components/NetflixTop10.tsx",
-    "frontend/src/components/ProfileSetupDialog.tsx",
-    "frontend/src/components/TrackedShows.tsx",
     "frontend/src/components/TrailerModal.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
-    "frontend/src/lib/devDiagnostics.ts",
-    "frontend/src/lib/mediaKeys.ts",
-    "frontend/src/lib/sectionTheme.ts",
-    "frontend/src/lib/versionGuard.ts",
-    "frontend/src/vite-env.d.ts",
     "project_state.json"
   ]
 }

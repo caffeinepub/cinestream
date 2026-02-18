@@ -1,27 +1,21 @@
 /**
- * Version guard utility to ensure deterministic builds.
- * Validates that the deployed version matches the expected version.
+ * Version validation utility for deterministic builds
  */
 
 const EXPECTED_VERSION = '42';
 
 export function validateVersion(): void {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || 'unknown';
+  const currentVersion = import.meta.env.VITE_APP_VERSION;
   
-  if (import.meta.env.PROD && currentVersion !== EXPECTED_VERSION) {
-    console.error(
-      `[Version Guard] Version mismatch detected!\n` +
-      `Expected: ${EXPECTED_VERSION}\n` +
-      `Current: ${currentVersion}\n` +
-      `This build may not be deterministic.`
+  if (currentVersion !== EXPECTED_VERSION) {
+    console.warn(
+      `[Version Mismatch] Expected version ${EXPECTED_VERSION}, but got ${currentVersion}. ` +
+      'This may indicate a deployment issue.'
     );
-  } else if (import.meta.env.DEV) {
-    console.log(`[Version Guard] Running version ${currentVersion} in development mode`);
-  } else {
-    console.log(`[Version Guard] Version ${currentVersion} validated successfully`);
   }
 }
 
-export function getVersion(): string {
-  return import.meta.env.VITE_APP_VERSION || 'unknown';
+// Run validation in production builds
+if (import.meta.env.PROD) {
+  validateVersion();
 }

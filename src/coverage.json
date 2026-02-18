@@ -1,92 +1,93 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T01:21:10.528Z",
+  "generatedAt": "2026-02-18T17:57:46.904Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 6,
+    "implemented": 6,
     "items": [
       {
-        "id": "REQ-28",
-        "summary": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
+        "id": "REQ-32",
+        "summary": "Restore the TrailerModal component in frontend/src/components/TrailerModal.tsx so that clicking 'Watch Trailer' on any MediaCard opens a visible modal dialog with a YouTube iframe player",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/Footer.tsx",
-          "frontend/src/components/TrailerModal.tsx",
-          "frontend/src/components/TrackedShows.tsx",
-          "frontend/src/components/ContentGrid.tsx",
-          "frontend/src/components/FeaturedRow.tsx",
-          "frontend/src/components/NetflixTop10.tsx",
-          "frontend/src/components/ApiHealthBanner.tsx",
-          "frontend/index.html"
+          "frontend/src/components/TrailerModal.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/Footer.tsx",
-          "frontend/src/components/TrailerModal.tsx",
-          "frontend/src/components/TrackedShows.tsx",
-          "frontend/src/components/ContentGrid.tsx",
-          "frontend/src/components/FeaturedRow.tsx",
-          "frontend/src/components/NetflixTop10.tsx",
-          "frontend/src/components/ApiHealthBanner.tsx"
+          "frontend/src/components/TrailerModal.tsx"
         ]
       },
       {
-        "id": "REQ-29",
-        "summary": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (so repeated deploy attempts do not accidentally redeploy a newer version).",
+        "id": "REQ-33",
+        "summary": "Implement trailer fetching logic in frontend/src/hooks/useQueries.ts (or a dedicated hook) that queries the TMDB API for trailer/video data given a media item's type and ID, with proper error handling for rate limits, timeouts, and missing trailers",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/.env.example",
-          "frontend/src/vite-env.d.ts",
-          "frontend/src/lib/versionGuard.ts",
-          "frontend/src/App.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/.env.example",
-          "frontend/src/vite-env.d.ts",
-          "frontend/src/lib/versionGuard.ts",
-          "frontend/src/App.tsx"
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-34",
+        "summary": "Update MediaCard component in frontend/src/components/MediaCard.tsx to trigger the TrailerModal when the user clicks 'Watch Trailer', passing the media item's type and ID to the modal",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MediaCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MediaCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-35",
+        "summary": "Ensure the TrailerModal displays explicit UI states for loading (spinner or skeleton), no trailer available (user-friendly message), and fetch errors (error message with 'Try Again' button that re-fetches)",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TrailerModal.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TrailerModal.tsx"
+        ]
+      },
+      {
+        "id": "REQ-36",
+        "summary": "Configure the TrailerModal's Radix/Shadcn Dialog component with a z-index high enough to render above all other page content, preventing the modal from being visually hidden in production",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TrailerModal.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TrailerModal.tsx"
+        ]
+      },
+      {
+        "id": "REQ-37",
+        "summary": "Manage TrailerModal open/close and iframe lifecycle state transitions so the modal reliably re-fetches and renders trailers when reopened, avoiding stale state that could leave the modal effectively invisible or the iframe failing to load",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TrailerModal.tsx",
+          "frontend/src/components/MediaCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TrailerModal.tsx",
+          "frontend/src/components/MediaCard.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/.env.example",
-    "frontend/src/App.tsx",
-    "frontend/src/components/AddShowDialog.tsx",
-    "frontend/src/components/ApiHealthBanner.tsx",
-    "frontend/src/components/ContentGrid.tsx",
-    "frontend/src/components/FeaturedRow.tsx",
-    "frontend/src/components/FilterBar.tsx",
-    "frontend/src/components/Footer.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/Hero.tsx",
     "frontend/src/components/MediaCard.tsx",
-    "frontend/src/components/NetflixTop10.tsx",
-    "frontend/src/components/ProfileSetupDialog.tsx",
-    "frontend/src/components/TrackedShows.tsx",
     "frontend/src/components/TrailerModal.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
-    "frontend/src/lib/devDiagnostics.ts",
-    "frontend/src/lib/mediaKeys.ts",
-    "frontend/src/lib/sectionTheme.ts",
-    "frontend/src/lib/versionGuard.ts",
-    "frontend/src/vite-env.d.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

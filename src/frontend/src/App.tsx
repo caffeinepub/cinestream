@@ -3,6 +3,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import Hero from './components/Hero';
+import FeaturedRow from './components/FeaturedRow';
+import NetflixTop10 from './components/NetflixTop10';
+import ApiHealthBanner from './components/ApiHealthBanner';
 import ProfileSetupDialog from './components/ProfileSetupDialog';
 import { Toaster } from './components/ui/sonner';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
@@ -44,12 +48,12 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]">
       <Header />
-      <main className="flex-1 flex items-center justify-center px-6">
-        <div className="text-center space-y-4 max-w-2xl">
-          <h2 className="text-4xl font-bold text-white">No Content Available</h2>
-          <p className="text-lg text-white/70">
-            No trending content is available at the moment. Please check back later.
-          </p>
+      <main className="flex-1">
+        <ApiHealthBanner />
+        <Hero />
+        <div className="space-y-12 pb-16">
+          <NetflixTop10 />
+          <FeaturedRow />
         </div>
       </main>
       <Footer />

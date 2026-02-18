@@ -1,66 +1,138 @@
 {
   "kind": "build_request",
-  "title": "Rollback deployment to version 42",
+  "title": "Fix broken trailer playback functionality",
   "projectName": "Bree's Favorites",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-28",
-      "text": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
-      "target": "both",
+      "id": "REQ-32",
+      "text": "Restore the TrailerModal component in frontend/src/components/TrailerModal.tsx so that clicking 'Watch Trailer' on any MediaCard opens a visible modal dialog with a YouTube iframe player",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-last"
         ],
         "quotes": [
-          "go back to version 42"
+          "trailers are broken"
         ]
       },
       "acceptanceCriteria": [
-        "The repository state matches version 42 for both frontend and backend sources (no post-v42 changes remain).",
-        "A fresh build succeeds using the reverted version 42 codebase without internal build/deploy errors.",
-        "Deployed canisters and frontend assets correspond to version 42 behavior (no UI/functionality from versions >42 appears)."
+        "TrailerModal.tsx contains a functional React component (not an empty file)",
+        "The modal opens when triggered from MediaCard click events",
+        "A YouTube iframe is rendered inside the modal with the correct trailer video ID",
+        "The modal dialog is visible on screen (not hidden by z-index or stacking context issues)"
       ]
     },
     {
-      "id": "REQ-29",
-      "text": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (so repeated deploy attempts do not accidentally redeploy a newer version).",
-      "target": "unknown",
+      "id": "REQ-33",
+      "text": "Implement trailer fetching logic in frontend/src/hooks/useQueries.ts (or a dedicated hook) that queries the TMDB API for trailer/video data given a media item's type and ID, with proper error handling for rate limits, timeouts, and missing trailers",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-last"
         ],
         "quotes": [
-          "go back to version 42"
+          "trailers are broken"
         ]
       },
       "acceptanceCriteria": [
-        "Re-running the deploy process repeatedly results in the same version 42 artifact outputs and deployed behavior.",
-        "There is a clear, single source of truth for the deployed version (e.g., pinning to the version 42 revision/tag) used by the build/deploy steps."
+        "A React Query hook fetches trailer data from TMDB /movie/{id}/videos or /tv/{id}/videos endpoints",
+        "The hook handles transient failures (rate limiting, timeouts, network errors) and surfaces them as React Query error states",
+        "The hook gracefully handles cases where no trailer exists (empty results array)",
+        "The hook uses the resilient TMDB fetch layer with timeouts and rate limiting already established in the codebase"
+      ]
+    },
+    {
+      "id": "REQ-34",
+      "text": "Update MediaCard component in frontend/src/components/MediaCard.tsx to trigger the TrailerModal when the user clicks 'Watch Trailer', passing the media item's type and ID to the modal",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "trailers are broken"
+        ]
+      },
+      "acceptanceCriteria": [
+        "MediaCard includes a 'Watch Trailer' button or clickable area in the hover overlay",
+        "Clicking triggers an onClick handler that opens the TrailerModal with the correct media type and ID",
+        "The interaction works consistently across all MediaCard instances (Featured, Netflix Top 10, Trending sections)"
+      ]
+    },
+    {
+      "id": "REQ-35",
+      "text": "Ensure the TrailerModal displays explicit UI states for loading (spinner or skeleton), no trailer available (user-friendly message), and fetch errors (error message with 'Try Again' button that re-fetches)",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "trailers are broken"
+        ]
+      },
+      "acceptanceCriteria": [
+        "While fetching trailer data, the modal shows a loading indicator",
+        "If no trailer exists in TMDB results, the modal shows a clear 'No trailer available' message",
+        "If the fetch fails (network error, rate limit, timeout), the modal shows an error message with a 'Try Again' button",
+        "Clicking 'Try Again' triggers a new fetch attempt via React Query",
+        "The modal never shows a blank/empty state when a trailer fetch is in progress or has failed"
+      ]
+    },
+    {
+      "id": "REQ-36",
+      "text": "Configure the TrailerModal's Radix/Shadcn Dialog component with a z-index high enough to render above all other page content, preventing the modal from being visually hidden in production",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "trailers are broken"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Dialog content and overlay render with z-index values that ensure visibility above Hero, Header, FeaturedRow, and all other page sections",
+        "The modal is fully visible and clickable in production builds (not just development)",
+        "No stacking context issues cause the modal or its video iframe to be hidden behind other elements"
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "text": "Manage TrailerModal open/close and iframe lifecycle state transitions so the modal reliably re-fetches and renders trailers when reopened, avoiding stale state that could leave the modal effectively invisible or the iframe failing to load",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "trailers are broken"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Closing and reopening the modal triggers a fresh trailer fetch (or uses valid cached data)",
+        "Switching between different media items (e.g., clicking Watch Trailer on multiple cards) correctly updates the modal's content without stale iframe state",
+        "The YouTube iframe key or src is updated appropriately to force re-render when the trailer ID changes",
+        "The modal's internal state (loading, error, iframe rendering) transitions cleanly across open/close cycles"
       ]
     }
   ],
   "constraints": [
-    "Respect the existing single-actor Motoko backend architecture (all Motoko logic remains in backend/main.mo).",
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Use English for any user-facing text."
+    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
+    "Do not modify any files under frontend/src/components/ui",
+    "Preserve the existing glassmorphic/Netflix-inspired design theme when implementing TrailerModal UI states",
+    "Use the existing resilient TMDB fetch layer (timeouts, rate limiting, graceful fallback) for trailer data requests",
+    "The TrailerModal must use the Radix/Shadcn Dialog component (already available in the project)"
   ],
   "nonGoals": [
-    "Do not implement new features beyond restoring version 42.",
-    "Do not perform unrelated refactors or UI redesigns as part of the rollback."
+    "Adding new trailer sources beyond TMDB",
+    "Implementing trailer download or offline playback",
+    "Adding trailer recommendations or autoplay carousel",
+    "Changing the MediaCard design or hover interactions beyond adding the Watch Trailer trigger"
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

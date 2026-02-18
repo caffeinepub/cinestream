@@ -2,18 +2,30 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-rollback-the-application-codebase-and-deployment-configuration-to-version-42-reverting-any-code-changes-introduced-after-version-42-across-both-the-frontend-and-backend",
-      "featureTitle": "Rollback the application codebase and deployment configuration to version 42, reverting any code changes introduced after version 42 across both the frontend and backend.",
+      "featureId": "feature-restore-the-trailermodal-component-in-frontend-src-components-trailermodal-tsx-so-that-clicking-watch-trailer-on-any-mediacard-opens-a-visible-modal-dialog-with-a-youtube-iframe-player",
+      "featureTitle": "Restore the TrailerModal component in frontend/src/components/TrailerModal.tsx so that clicking 'Watch Trailer' on any MediaCard opens a visible modal dialog with a YouTube iframe player",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/ApiHealthBanner.tsx",
-        "frontend/src/components/ContentGrid.tsx",
-        "frontend/src/components/FeaturedRow.tsx",
-        "frontend/src/components/Footer.tsx",
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/NetflixTop10.tsx",
-        "frontend/src/components/TrackedShows.tsx",
-        "frontend/src/components/TrailerModal.tsx",
+        "frontend/src/components/TrailerModal.tsx"
+      ],
+      "components": [
+        "http-outcalls@3.0.0",
+        "blob-storage@3.0.0",
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-32"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-trailer-fetching-logic-in-frontend-src-hooks-usequeries-ts-or-a-dedicated-hook-that-queries-the-tmdb-api-for-trailer-video-data-given-a-media-item-s-type-and-id-with-proper-error-handling-for-rate-limits-timeouts-and-missing-trailers",
+      "featureTitle": "Implement trailer fetching logic in frontend/src/hooks/useQueries.ts (or a dedicated hook) that queries the TMDB API for trailer/video data given a media item's type and ID, with proper error handling for rate limits, timeouts, and missing trailers",
+      "files": [
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -27,18 +39,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-28"
+        "REQ-33"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-deployment-pipeline-build-scripts-select-and-deploy-version-42-deterministically-so-repeated-deploy-attempts-do-not-accidentally-redeploy-a-newer-version",
-      "featureTitle": "Ensure the deployment pipeline/build scripts select and deploy version 42 deterministically (so repeated deploy attempts do not accidentally redeploy a newer version).",
+      "featureId": "feature-update-mediacard-component-in-frontend-src-components-mediacard-tsx-to-trigger-the-trailermodal-when-the-user-clicks-watch-trailer-passing-the-media-item-s-type-and-id-to-the-modal",
+      "featureTitle": "Update MediaCard component in frontend/src/components/MediaCard.tsx to trigger the TrailerModal when the user clicks 'Watch Trailer', passing the media item's type and ID to the modal",
       "files": [
-        "frontend/.env.example",
-        "frontend/src/App.tsx",
-        "frontend/src/lib/versionGuard.ts",
-        "frontend/src/vite-env.d.ts"
+        "frontend/src/components/MediaCard.tsx"
       ],
       "components": [
         "http-outcalls@3.0.0",
@@ -51,7 +60,71 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-29"
+        "REQ-34"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-trailermodal-displays-explicit-ui-states-for-loading-spinner-or-skeleton-no-trailer-available-user-friendly-message-and-fetch-errors-error-message-with-try-again-button-that-re-fetches",
+      "featureTitle": "Ensure the TrailerModal displays explicit UI states for loading (spinner or skeleton), no trailer available (user-friendly message), and fetch errors (error message with 'Try Again' button that re-fetches)",
+      "files": [
+        "frontend/src/components/TrailerModal.tsx"
+      ],
+      "components": [
+        "http-outcalls@3.0.0",
+        "blob-storage@3.0.0",
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-35"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-configure-the-trailermodal-s-radix-shadcn-dialog-component-with-a-z-index-high-enough-to-render-above-all-other-page-content-preventing-the-modal-from-being-visually-hidden-in-production",
+      "featureTitle": "Configure the TrailerModal's Radix/Shadcn Dialog component with a z-index high enough to render above all other page content, preventing the modal from being visually hidden in production",
+      "files": [
+        "frontend/src/components/TrailerModal.tsx"
+      ],
+      "components": [
+        "http-outcalls@3.0.0",
+        "blob-storage@3.0.0",
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-36"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-manage-trailermodal-open-close-and-iframe-lifecycle-state-transitions-so-the-modal-reliably-re-fetches-and-renders-trailers-when-reopened-avoiding-stale-state-that-could-leave-the-modal-effectively-invisible-or-the-iframe-failing-to-load",
+      "featureTitle": "Manage TrailerModal open/close and iframe lifecycle state transitions so the modal reliably re-fetches and renders trailers when reopened, avoiding stale state that could leave the modal effectively invisible or the iframe failing to load",
+      "files": [
+        "frontend/src/components/MediaCard.tsx",
+        "frontend/src/components/TrailerModal.tsx"
+      ],
+      "components": [
+        "http-outcalls@3.0.0",
+        "blob-storage@3.0.0",
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-37"
       ],
       "confidence": "high"
     }
