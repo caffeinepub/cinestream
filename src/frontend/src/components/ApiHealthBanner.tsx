@@ -1,6 +1,9 @@
-import React from 'react';
-import { useGetTrendingMovies, useGetTrendingTVShows } from '../hooks/useQueries';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from "lucide-react";
+import React from "react";
+import {
+  useGetTrendingMovies,
+  useGetTrendingTVShows,
+} from "../hooks/useQueries";
 
 export default function ApiHealthBanner() {
   const { isError: moviesError } = useGetTrendingMovies();
@@ -18,8 +21,9 @@ export default function ApiHealthBanner() {
         <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
         <div className="flex-1">
           <p className="text-yellow-100 text-sm">
-            <strong>TMDB API Connection Issue:</strong> Unable to fetch trending content. 
-            The service may be temporarily unavailable. Please try again later.
+            <strong>TMDB API Connection Issue:</strong> Unable to fetch trending
+            content. The service may be temporarily unavailable. Please try
+            again later.
           </p>
         </div>
       </div>

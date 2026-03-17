@@ -1,16 +1,17 @@
-import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { ThemeProvider } from 'next-themes';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Hero from './components/Hero';
-import FeaturedRow from './components/FeaturedRow';
-import NetflixTop10 from './components/NetflixTop10';
-import ApiHealthBanner from './components/ApiHealthBanner';
-import ProfileSetupDialog from './components/ProfileSetupDialog';
-import { Toaster } from './components/ui/sonner';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from './hooks/useQueries';
+import { useQueryClient } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
+import { useEffect } from "react";
+import ApiHealthBanner from "./components/ApiHealthBanner";
+import FeaturedRow from "./components/FeaturedRow";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import NetflixTop10 from "./components/NetflixTop10";
+import ProfileSetupDialog from "./components/ProfileSetupDialog";
+import TrackedShows from "./components/TrackedShows";
+import { Toaster } from "./components/ui/sonner";
+import { useInternetIdentity } from "./hooks/useInternetIdentity";
+import { useGetCallerUserProfile } from "./hooks/useQueries";
 
 export interface MediaItem {
   id: number;
@@ -23,19 +24,23 @@ export interface MediaItem {
   first_air_date?: string;
   vote_average: number;
   genre_ids: number[];
-  media_type: 'movie' | 'tv';
+  media_type: "movie" | "tv";
   popularity?: number;
 }
 
 function AppContent() {
-  const { identity, isInitializing } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const { identity } = useInternetIdentity();
+  const {
+    data: userProfile,
+    isLoading: profileLoading,
+    isFetched,
+  } = useGetCallerUserProfile();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const showProfileSetup =
+    isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
-  // Apply query defaults at runtime
   useEffect(() => {
     queryClient.setDefaultOptions({
       queries: {
@@ -46,12 +51,16 @@ function AppContent() {
   }, [queryClient]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]">
+    <div
+      className="min-h-screen flex flex-col relative"
+      style={{ background: "oklch(6% 0.008 55)" }}
+    >
       <Header />
       <main className="flex-1">
         <ApiHealthBanner />
         <Hero />
-        <div className="space-y-12 pb-16">
+        <div className="space-y-12 pb-20 px-0">
+          <TrackedShows />
           <NetflixTop10 />
           <FeaturedRow />
         </div>

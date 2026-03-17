@@ -1,4 +1,4 @@
-import type { MediaItem } from '../App';
+import type { MediaItem } from "../App";
 
 /**
  * Generate a stable, unique key for a MediaItem
